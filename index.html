@@ -133,6 +133,8 @@
     let isDragging = false;
     let currentPos = null;
     let displayWord = '';
+    let displayScore = 0;
+    let totalScore = 0;
 
     // DOM
     const canvas = document.getElementById('board');
@@ -145,6 +147,11 @@
     canvas.style.width = BOARD_WIDTH + 'px';
     canvas.style.height = BOARD_HEIGHT + 'px';
     scoreSection.style.width = BOARD_WIDTH + 'px';
+
+    // Dictionary stub - always returns true for now
+    function isValidWord(word) {
+      return word.length >= 2;
+    }
 
     function weightedPick(weights) {
       const entries = Object.entries(weights);
@@ -240,40 +247,82 @@
       }
     }
 
-    function addMultipliers(tiles) {
-      const types = [];
-      // 0-2 of each multiplier type
-      const addType = (type) => {
-        const count = Math.floor(Math.random() * 3); // 0, 1, or 2
-        for (let i = 0; i < count; i++) types.push(type);
-      };
-      addType('DL');
-      addType('TL');
-      addType('DW');
-      addType('TW');
+    function checkMultiplierAdjacency(tiles) {
+      const multiplierIndices = [];
+      for (let i = 0; i < tiles.length; i++) {
+        if (tiles[i].multiplier) multiplierIndices.push(i);
+      }
 
-      shuffle(types);
+      // Count adjacencies and find tiles with 2+ adjacent multipliers
+      let pairCount = 0;
+      let tripleCount = 0;
+      const counted = new Set();
 
-      // Cap at 5 multipliers
-      const toPlace = types.slice(0, 5);
-
-      const usedIndices = new Set();
-      for (const type of toPlace) {
-        let placed = false;
-        for (let attempt = 0; attempt < 20 && !placed; attempt++) {
-          const index = Math.floor(Math.random() * 16);
-          if (usedIndices.has(index)) continue;
-
-          const letter = tiles[index].letter;
-          // Prefer vowels and common consonants, avoid high-value letters
-          const isGood = VOWELS.includes(letter) ||
-                         ['T','N','S','R','L','D','C','M','P'].includes(letter);
-          if (isGood || attempt > 10) {
-            tiles[index].multiplier = type;
-            usedIndices.add(index);
-            placed = true;
+      for (const idx of multiplierIndices) {
+        const neighbors = getNeighbors(idx);
+        const adjacentMultipliers = neighbors.filter(n => tiles[n].multiplier);
+        
+        // Count pairs (each pair counted once)
+        for (const adj of adjacentMultipliers) {
+          const key = Math.min(idx, adj) + '-' + Math.max(idx, adj);
+          if (!counted.has(key)) {
+            counted.add(key);
+            pairCount++;
           }
         }
+
+        // Count triples (tiles with 2+ adjacent multipliers)
+        if (adjacentMultipliers.length >= 2) {
+          tripleCount++;
+        }
+      }
+
+      return pairCount <= 2 && tripleCount <= 1;
+    }
+
+    function addMultipliers(tiles) {
+      const allTypes = ['DL', 'TL', 'DW', 'TW'];
+      
+      for (let attempt = 0; attempt < 50; attempt++) {
+        // Clear any existing multipliers
+        for (const tile of tiles) tile.multiplier = null;
+
+        // Pick total count: 0-5
+        const totalCount = Math.floor(Math.random() * 6);
+        if (totalCount === 0) return;
+
+        // Build list with max 2 per type
+        const counts = { DL: 0, TL: 0, DW: 0, TW: 0 };
+        const toPlace = [];
+
+        for (let i = 0; i < totalCount; i++) {
+          const available = allTypes.filter(t => counts[t] < 2);
+          const type = available[Math.floor(Math.random() * available.length)];
+          toPlace.push(type);
+          counts[type]++;
+        }
+
+        // Place multipliers
+        const usedIndices = new Set();
+        for (const type of toPlace) {
+          let placed = false;
+          for (let placeAttempt = 0; placeAttempt < 20 && !placed; placeAttempt++) {
+            const index = Math.floor(Math.random() * 16);
+            if (usedIndices.has(index)) continue;
+
+            const letter = tiles[index].letter;
+            const isGood = VOWELS.includes(letter) ||
+                           ['T','N','S','R','L','D','C','M','P'].includes(letter);
+            if (isGood || placeAttempt > 10) {
+              tiles[index].multiplier = type;
+              usedIndices.add(index);
+              placed = true;
+            }
+          }
+        }
+
+        // Check adjacency constraints
+        if (checkMultiplierAdjacency(tiles)) return;
       }
     }
 
@@ -329,7 +378,7 @@
       return `rgb(${R},${G},${B})`;
     }
 
-    function calculateScore() {
+    function calculateWordScore() {
       if (selectedPath.length === 0) return 0;
       let sum = 0, wordMult = 1;
       for (const idx of selectedPath) {
@@ -354,12 +403,16 @@
 
       const cornerRadius = 12;
 
-      // Word pill
+      // Word pill with score superscript
       if (displayWord.length > 0) {
         const pillH = 44, pillPad = 24;
         ctx.font = 'bold 24px system-ui';
-        const tw = ctx.measureText(displayWord).width;
-        const pillW = Math.max(tw + pillPad * 2, 80);
+        const wordWidth = ctx.measureText(displayWord).width;
+        ctx.font = 'bold 16px system-ui';
+        const scoreText = '+' + displayScore;
+        const scoreWidth = ctx.measureText(scoreText).width;
+        const totalWidth = wordWidth + scoreWidth + 4;
+        const pillW = Math.max(totalWidth + pillPad * 2, 80);
         const pillX = (BOARD_WIDTH - pillW) / 2, pillY = 8;
 
         ctx.fillStyle = 'rgba(0,0,0,0.2)';
@@ -370,9 +423,16 @@
         ctx.fillStyle = pillGrad;
         ctx.beginPath(); ctx.roundRect(pillX, pillY, pillW, pillH, pillH / 2); ctx.fill();
 
+        // Word
         ctx.fillStyle = '#fff';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(displayWord, BOARD_WIDTH / 2, pillY + pillH / 2);
+        ctx.font = 'bold 24px system-ui';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        const textStartX = pillX + (pillW - totalWidth) / 2;
+        ctx.fillText(displayWord, textStartX, pillY + pillH / 2);
+
+        // Score superscript
+        ctx.font = 'bold 16px system-ui';
+        ctx.fillText(scoreText, textStartX + wordWidth + 4, pillY + pillH / 2 - 8);
       }
 
       // Tiles
@@ -492,7 +552,7 @@
         isDragging = true;
         currentPos = coords;
         displayWord = board[tile.index].letter;
-        scoreValue.textContent = calculateScore();
+        displayScore = calculateWordScore();
         draw();
       }
     }
@@ -514,7 +574,7 @@
           }
         }
         displayWord = selectedPath.map(i => board[i].letter).join('');
-        scoreValue.textContent = calculateScore();
+        displayScore = calculateWordScore();
       }
       draw();
     }
@@ -523,7 +583,16 @@
       e.preventDefault();
       isDragging = false;
       currentPos = null;
+
+      // Submit word if valid
+      if (displayWord.length > 0 && isValidWord(displayWord)) {
+        totalScore += displayScore;
+        scoreValue.textContent = totalScore;
+      }
+
       selectedPath = [];
+      displayWord = '';
+      displayScore = 0;
       draw();
     }
 
@@ -539,6 +608,8 @@
       board = generateBoard();
       selectedPath = [];
       displayWord = '';
+      displayScore = 0;
+      totalScore = 0;
       scoreValue.textContent = '0';
       draw();
     });
