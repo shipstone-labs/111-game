@@ -135,6 +135,8 @@
     let displayWord = '';
     let displayScore = 0;
     let totalScore = 0;
+    let showInvalid = false;
+    let invalidTimeout = null;
 
     // DOM
     const canvas = document.getElementById('board');
@@ -148,9 +150,12 @@
     canvas.style.height = BOARD_HEIGHT + 'px';
     scoreSection.style.width = BOARD_WIDTH + 'px';
 
-    // Dictionary stub - always returns true for now
+    // Dictionary stub - alternates valid/invalid for testing
+    let stubToggle = true;
     function isValidWord(word) {
-      return word.length >= 2;
+      if (word.length < 2) return false;
+      stubToggle = !stubToggle;
+      return stubToggle;
     }
 
     function weightedPick(weights) {
@@ -404,8 +409,30 @@
 
       const cornerRadius = 12;
 
-      // Word pill with score superscript
-      if (displayWord.length > 0) {
+      // Word pill - show invalid state or valid word
+      if (showInvalid) {
+        // Red pill for invalid word
+        const pillH = 44, pillPad = 24;
+        const invalidText = 'not a word';
+        ctx.font = 'bold 20px system-ui';
+        const textWidth = ctx.measureText(invalidText).width;
+        const pillW = Math.max(textWidth + pillPad * 2, 120);
+        const pillX = (BOARD_WIDTH - pillW) / 2, pillY = 8;
+
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath(); ctx.roundRect(pillX + 2, pillY + 3, pillW, pillH, pillH / 2); ctx.fill();
+
+        const pillGrad = ctx.createLinearGradient(pillX, pillY, pillX, pillY + pillH);
+        pillGrad.addColorStop(0, '#ef5350'); pillGrad.addColorStop(1, '#c62828');
+        ctx.fillStyle = pillGrad;
+        ctx.beginPath(); ctx.roundRect(pillX, pillY, pillW, pillH, pillH / 2); ctx.fill();
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 20px system-ui';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(invalidText, pillX + pillW / 2, pillY + pillH / 2);
+      } else if (displayWord.length > 0) {
+        // Orange pill for valid word with score
         const pillH = 44, pillPad = 24;
         ctx.font = 'bold 24px system-ui';
         const wordWidth = ctx.measureText(displayWord).width;
@@ -546,6 +573,13 @@
 
     function handleStart(e) {
       e.preventDefault();
+      // Clear any pending invalid timeout
+      if (invalidTimeout) {
+        clearTimeout(invalidTimeout);
+        invalidTimeout = null;
+      }
+      showInvalid = false;
+
       const coords = getCoords(e);
       const tile = getTileAt(coords.x, coords.y);
       if (tile) {
@@ -585,13 +619,24 @@
       isDragging = false;
       currentPos = null;
 
-      // Submit word if valid
-      if (displayWord.length > 0 && isValidWord(displayWord)) {
-        totalScore += displayScore;
-        scoreValue.textContent = totalScore;
+      if (displayWord.length > 0) {
+        if (isValidWord(displayWord)) {
+          // Valid word - add score, keep pill visible
+          totalScore += displayScore;
+          scoreValue.textContent = totalScore;
+        } else {
+          // Invalid word - show red pill for 1 second
+          showInvalid = true;
+          displayWord = '';
+          displayScore = 0;
+          invalidTimeout = setTimeout(() => {
+            showInvalid = false;
+            invalidTimeout = null;
+            draw();
+          }, 1000);
+        }
       }
 
-      // Keep displayWord and displayScore visible until next word starts
       selectedPath = [];
       draw();
     }
@@ -605,11 +650,16 @@
     canvas.addEventListener('touchend', handleEnd, { passive: false });
 
     document.getElementById('newBoard').addEventListener('click', () => {
+      if (invalidTimeout) {
+        clearTimeout(invalidTimeout);
+        invalidTimeout = null;
+      }
       board = generateBoard();
       selectedPath = [];
       displayWord = '';
       displayScore = 0;
       totalScore = 0;
+      showInvalid = false;
       scoreValue.textContent = '0';
       draw();
     });
