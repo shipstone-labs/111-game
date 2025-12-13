@@ -242,9 +242,9 @@
 
     function addMultipliers(tiles) {
       const types = [];
-      // 1-2 of each multiplier type
+      // 0-2 of each multiplier type
       const addType = (type) => {
-        const count = 1 + Math.floor(Math.random() * 2);
+        const count = Math.floor(Math.random() * 3); // 0, 1, or 2
         for (let i = 0; i < count; i++) types.push(type);
       };
       addType('DL');
@@ -254,8 +254,11 @@
 
       shuffle(types);
 
+      // Cap at 5 multipliers
+      const toPlace = types.slice(0, 5);
+
       const usedIndices = new Set();
-      for (const type of types) {
+      for (const type of toPlace) {
         let placed = false;
         for (let attempt = 0; attempt < 20 && !placed; attempt++) {
           const index = Math.floor(Math.random() * 16);
