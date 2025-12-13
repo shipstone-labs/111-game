@@ -1,0 +1,17 @@
+{
+  "name": "Ruzzle",
+  "short_name": "Ruzzle",
+  "description": "Word puzzle game",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#2171b5",
+  "theme_color": "#4a9eda",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%234a9eda' width='100' height='100' rx='20'/><text x='50' y='68' text-anchor='middle' font-size='50' font-weight='bold' fill='white'>R</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
