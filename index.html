@@ -109,10 +109,23 @@
     const BADGE_RADIUS = 14;
     const SELECTION_RADIUS = TILE_SIZE * 0.5;
 
+    // Correct letter values from 111 game
     const LETTER_VALUES = {
-      A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10
+      A:1, B:4, C:4, D:2, E:1, F:4, G:3, H:4,
+      I:1, J:8, K:5, L:2, M:4, N:2, O:1, P:4,
+      Q:10, R:1, S:1, T:1, U:2, V:5, W:4, X:8, Y:4, Z:10
     };
     const MULTIPLIER_COLORS = { DL:'#4CAF50', TL:'#2196F3', DW:'#FF9800', TW:'#F44336' };
+
+    // Letter selection constants
+    const VOWELS = ['A', 'E', 'I', 'O', 'U'];
+    const VOWEL_WEIGHTS = { E: 40, A: 25, I: 20, O: 10, U: 5 };
+    const GUARANTEED = ['E', 'T', 'A', 'S', 'R', 'I', 'N'];
+    const HIGH_VALUE = ['Q', 'X', 'Z', 'J', 'K'];
+    const CONSONANT_WEIGHTS = {
+      T:15, N:14, S:14, R:13, L:12, D:10, C:9, M:8, P:8,
+      G:7, H:6, B:5, Y:5, F:4, K:3, W:3, V:2, X:1, Z:1, J:1, Q:1
+    };
 
     // State
     let board = [];
@@ -133,21 +146,146 @@
     canvas.style.height = BOARD_HEIGHT + 'px';
     scoreSection.style.width = BOARD_WIDTH + 'px';
 
-    function generateBoard() {
-      const letters = 'ETAOINSHRDLCUMWFGYPBVKJXQZ';
-      const tiles = [];
-      for (let row = 0; row < 4; row++) {
-        for (let col = 0; col < 4; col++) {
-          const letter = letters[Math.floor(Math.random() * 16)];
-          let multiplier = null;
-          const rand = Math.random();
-          if (rand < 0.1) multiplier = 'DL';
-          else if (rand < 0.18) multiplier = 'TL';
-          else if (rand < 0.24) multiplier = 'DW';
-          else if (rand < 0.28) multiplier = 'TW';
-          tiles.push({ letter, multiplier, row, col });
+    function weightedPick(weights) {
+      const entries = Object.entries(weights);
+      const total = entries.reduce((sum, [, w]) => sum + w, 0);
+      let r = Math.random() * total;
+      for (const [letter, weight] of entries) {
+        r -= weight;
+        if (r <= 0) return letter;
+      }
+      return entries[0][0];
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function selectLetters() {
+      const letters = [];
+      const used = new Set();
+
+      // 1. Guarantee E, T, A, S, R, I, N
+      for (const letter of GUARANTEED) {
+        letters.push(letter);
+        used.add(letter);
+      }
+
+      // 2. Add vowels to reach 5-7 total (we have E, A, I from guaranteed = 3)
+      const targetVowels = 5 + Math.floor(Math.random() * 3);
+      const currentVowels = letters.filter(l => VOWELS.includes(l)).length;
+      for (let i = currentVowels; i < targetVowels && letters.length < 16; i++) {
+        letters.push(weightedPick(VOWEL_WEIGHTS));
+      }
+
+      // 3. Maybe add 1-2 high-value letters (50% chance)
+      if (Math.random() < 0.5) {
+        const count = 1 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < count && letters.length < 16; i++) {
+          letters.push(HIGH_VALUE[Math.floor(Math.random() * HIGH_VALUE.length)]);
         }
       }
+
+      // 4. Fill remainder with weighted consonants
+      while (letters.length < 16) {
+        letters.push(weightedPick(CONSONANT_WEIGHTS));
+      }
+
+      return shuffle(letters);
+    }
+
+    function getNeighbors(index) {
+      const row = Math.floor(index / 4), col = index % 4;
+      const neighbors = [];
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          const nr = row + dr, nc = col + dc;
+          if (nr >= 0 && nr < 4 && nc >= 0 && nc < 4) {
+            neighbors.push(nr * 4 + nc);
+          }
+        }
+      }
+      return neighbors;
+    }
+
+    function hasAdjacentVowel(tiles, index) {
+      return getNeighbors(index).some(ni => VOWELS.includes(tiles[ni].letter));
+    }
+
+    function ensureHighValueAdjacency(tiles) {
+      for (let i = 0; i < tiles.length; i++) {
+        if (!HIGH_VALUE.includes(tiles[i].letter)) continue;
+        if (hasAdjacentVowel(tiles, i)) continue;
+
+        // Find a non-high-value tile that has an adjacent vowel
+        for (let j = 0; j < tiles.length; j++) {
+          if (i === j) continue;
+          if (HIGH_VALUE.includes(tiles[j].letter)) continue;
+          if (!hasAdjacentVowel(tiles, j)) continue;
+
+          // Swap entire tile objects (not just letters)
+          [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+          // Update row/col after swap
+          tiles[i].row = Math.floor(i / 4);
+          tiles[i].col = i % 4;
+          tiles[j].row = Math.floor(j / 4);
+          tiles[j].col = j % 4;
+          break;
+        }
+      }
+    }
+
+    function addMultipliers(tiles) {
+      const types = [];
+      // 1-2 of each multiplier type
+      const addType = (type) => {
+        const count = 1 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < count; i++) types.push(type);
+      };
+      addType('DL');
+      addType('TL');
+      addType('DW');
+      addType('TW');
+
+      shuffle(types);
+
+      const usedIndices = new Set();
+      for (const type of types) {
+        let placed = false;
+        for (let attempt = 0; attempt < 20 && !placed; attempt++) {
+          const index = Math.floor(Math.random() * 16);
+          if (usedIndices.has(index)) continue;
+
+          const letter = tiles[index].letter;
+          // Prefer vowels and common consonants, avoid high-value letters
+          const isGood = VOWELS.includes(letter) ||
+                         ['T','N','S','R','L','D','C','M','P'].includes(letter);
+          if (isGood || attempt > 10) {
+            tiles[index].multiplier = type;
+            usedIndices.add(index);
+            placed = true;
+          }
+        }
+      }
+    }
+
+    function generateBoard() {
+      const letters = selectLetters();
+      const tiles = letters.map((letter, i) => ({
+        letter,
+        multiplier: null,
+        row: Math.floor(i / 4),
+        col: i % 4
+      }));
+
+      ensureHighValueAdjacency(tiles);
+      addMultipliers(tiles);
+
       return tiles;
     }
 
