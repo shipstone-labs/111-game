@@ -282,25 +282,26 @@
 
     function addMultipliers(tiles) {
       const allTypes = ['DL', 'TL', 'DW', 'TW'];
-      
+
+      // Pick total count ONCE: 0-5
+      const totalCount = Math.floor(Math.random() * 6);
+      if (totalCount === 0) return;
+
+      // Build list with max 2 per type
+      const counts = { DL: 0, TL: 0, DW: 0, TW: 0 };
+      const toPlace = [];
+
+      for (let i = 0; i < totalCount; i++) {
+        const available = allTypes.filter(t => counts[t] < 2);
+        const type = available[Math.floor(Math.random() * available.length)];
+        toPlace.push(type);
+        counts[type]++;
+      }
+
+      // Retry placement up to 50 times to satisfy adjacency constraints
       for (let attempt = 0; attempt < 50; attempt++) {
         // Clear any existing multipliers
         for (const tile of tiles) tile.multiplier = null;
-
-        // Pick total count: 0-5
-        const totalCount = Math.floor(Math.random() * 6);
-        if (totalCount === 0) return;
-
-        // Build list with max 2 per type
-        const counts = { DL: 0, TL: 0, DW: 0, TW: 0 };
-        const toPlace = [];
-
-        for (let i = 0; i < totalCount; i++) {
-          const available = allTypes.filter(t => counts[t] < 2);
-          const type = available[Math.floor(Math.random() * available.length)];
-          toPlace.push(type);
-          counts[type]++;
-        }
 
         // Place multipliers
         const usedIndices = new Set();
@@ -590,9 +591,8 @@
         scoreValue.textContent = totalScore;
       }
 
+      // Keep displayWord and displayScore visible until next word starts
       selectedPath = [];
-      displayWord = '';
-      displayScore = 0;
       draw();
     }
 
