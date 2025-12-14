@@ -45,15 +45,25 @@
       color: #fff;
       font-size: 28px;
       font-weight: bold;
+      min-width: 90px;
     }
     .timer-icon {
       width: 28px;
       height: 28px;
+      flex-shrink: 0;
+    }
+    .timer-display {
+      font-variant-numeric: tabular-nums;
+      min-width: 52px;
+      text-align: left;
     }
     .score {
       color: #fff;
       font-size: 36px;
       font-weight: bold;
+      font-variant-numeric: tabular-nums;
+      min-width: 60px;
+      text-align: center;
     }
     .start-btn {
       padding: 10px 20px;
@@ -119,7 +129,7 @@
           <path d="M9 2h6"/>
           <path d="M12 2v2"/>
         </svg>
-        <span id="timerDisplay">1:00</span>
+        <span class="timer-display" id="timerDisplay">1:00</span>
       </div>
       <div class="score" id="scoreValue">0</div>
       <button class="start-btn" id="startBtn">Start</button>
@@ -377,7 +387,7 @@
 
       for (let i = 0; i < totalCount; i++) {
         const available = allTypes.filter(t => counts[t] < 2);
-        const type = available[Math.floor(Math.random() * available.length)];
+        const type = available[Math.floor(Math.random() * available.length)]];
         toPlace.push(type);
         counts[type]++;
       }
