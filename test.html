@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruzzle Tests</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 20px; background: #1a1a2e; color: #eee; }
+    h1 { color: #4a9eda; }
+    h2 { color: #aaa; margin-top: 24px; }
+    .pass { color: #4CAF50; }
+    .fail { color: #F44336; }
+    .test { margin: 4px 0; font-family: monospace; }
+    .summary { margin-top: 24px; padding: 16px; border-radius: 8px; font-size: 18px; }
+    .summary.pass { background: #1b4332; }
+    .summary.fail { background: #5c1a1a; }
+    #results { margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Ruzzle Test Suite</h1>
+  <div id="results"></div>
+  
+  <!-- Hidden game elements for e2e tests -->
+  <div style="position: absolute; left: -9999px;">
+    <div class="game-container" id="gameContainer">
+      <div class="header">
+        <div class="timer">
+          <span class="timer-display" id="timerDisplay">1:00</span>
+        </div>
+        <div class="score" id="scoreValue">0</div>
+        <button class="start-btn" id="startBtn">Play</button>
+      </div>
+      <div class="word-area">
+        <div class="word-pill" id="wordPill">
+          <span class="word-text" id="wordText"></span>
+          <span class="word-score" id="wordScore"></span>
+        </div>
+      </div>
+      <div style="position: relative;">
+        <canvas id="board"></canvas>
+        <div class="game-over-overlay" id="gameOverOverlay">
+          <div class="game-over-text">Game Over</div>
+          <div class="final-score" id="finalScore">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+  <script>
+    const results = document.getElementById('results');
+    let passed = 0;
+    let failed = 0;
+
+    function assert(condition, testName) {
+      if (condition) {
+        passed++;
+        results.innerHTML += `<div class="test pass">✓ ${testName}</div>`;
+      } else {
+        failed++;
+        results.innerHTML += `<div class="test fail">✗ ${testName}</div>`;
+      }
+    }
+
+    function assertEqual(actual, expected, testName) {
+      if (actual === expected) {
+        passed++;
+        results.innerHTML += `<div class="test pass">✓ ${testName}</div>`;
+      } else {
+        failed++;
+        results.innerHTML += `<div class="test fail">✗ ${testName} (expected ${expected}, got ${actual})</div>`;
+      }
+    }
+
+    function assertIncludes(arr, item, testName) {
+      if (arr.includes(item)) {
+        passed++;
+        results.innerHTML += `<div class="test pass">✓ ${testName}</div>`;
+      } else {
+        failed++;
+        results.innerHTML += `<div class="test fail">✗ ${testName} (${item} not found in array)</div>`;
+      }
+    }
+
+    function section(name) {
+      results.innerHTML += `<h2>${name}</h2>`;
+    }
+
+    // ============ UNIT TESTS ============
+
+    section('Timer Formatting');
+    assertEqual(formatTime(60), '1:00', 'formatTime(60) = 1:00');
+    assertEqual(formatTime(59), '0:59', 'formatTime(59) = 0:59');
+    assertEqual(formatTime(9), '0:09', 'formatTime(9) = 0:09');
+    assertEqual(formatTime(0), '0:00', 'formatTime(0) = 0:00');
+    assertEqual(formatTime(125), '2:05', 'formatTime(125) = 2:05');
+
+    section('Adjacency - getNeighbors');
+    const n0 = getNeighbors(0);
+    assertEqual(n0.length, 3, 'Corner tile (0) has 3 neighbors');
+    assertIncludes(n0, 1, 'Tile 0 neighbor includes 1');
+    assertIncludes(n0, 4, 'Tile 0 neighbor includes 4');
+    assertIncludes(n0, 5, 'Tile 0 neighbor includes 5');
+
+    const n1 = getNeighbors(1);
+    assertEqual(n1.length, 5, 'Edge tile (1) has 5 neighbors');
+
+    const n5 = getNeighbors(5);
+    assertEqual(n5.length, 8, 'Center tile (5) has 8 neighbors');
+
+    const n15 = getNeighbors(15);
+    assertEqual(n15.length, 3, 'Corner tile (15) has 3 neighbors');
+
+    section('Adjacency - areAdjacent');
+    assert(areAdjacent({row:0,col:0}, {row:0,col:1}), 'Horizontal adjacent');
+    assert(areAdjacent({row:0,col:0}, {row:1,col:0}), 'Vertical adjacent');
+    assert(areAdjacent({row:0,col:0}, {row:1,col:1}), 'Diagonal adjacent');
+    assert(!areAdjacent({row:0,col:0}, {row:0,col:0}), 'Same tile not adjacent');
+    assert(!areAdjacent({row:0,col:0}, {row:0,col:2}), '2 tiles apart not adjacent');
+    assert(!areAdjacent({row:0,col:0}, {row:2,col:2}), 'Diagonal 2 apart not adjacent');
+
+    section('Board Generation - selectLetters');
+    const letters = selectLetters();
+    assertEqual(letters.length, 16, 'selectLetters returns 16 letters');
+    for (const g of GUARANTEED) {
+      assertIncludes(letters, g, `Guaranteed letter ${g} present`);
+    }
+    const vowelCount = letters.filter(l => VOWELS.includes(l)).length;
+    assert(vowelCount >= 5 && vowelCount <= 7, `Vowel count ${vowelCount} in range 5-7`);
+
+    section('Board Generation - generateBoard');
+    const testBoard = generateBoard();
+    assertEqual(testBoard.length, 16, 'generateBoard returns 16 tiles');
+    assert(testBoard.every(t => t.letter && typeof t.row === 'number' && typeof t.col === 'number'), 
+           'All tiles have letter, row, col');
+
+    // Check high-value adjacency
+    let highValueAdjacentOk = true;
+    for (let i = 0; i < testBoard.length; i++) {
+      if (HIGH_VALUE.includes(testBoard[i].letter)) {
+        if (!hasAdjacentVowel(testBoard, i)) {
+          highValueAdjacentOk = false;
+          break;
+        }
+      }
+    }
+    assert(highValueAdjacentOk, 'High-value letters adjacent to vowels');
+
+    section('Scoring - calculateWordScore');
+    // Create controlled board for scoring tests
+    const scoringBoard = [
+      {letter:'C',multiplier:null,row:0,col:0},
+      {letter:'A',multiplier:null,row:0,col:1},
+      {letter:'T',multiplier:null,row:0,col:2},
+      {letter:'S',multiplier:null,row:0,col:3},
+      {letter:'D',multiplier:'DL',row:1,col:0},
+      {letter:'O',multiplier:'TL',row:1,col:1},
+      {letter:'G',multiplier:'DW',row:1,col:2},
+      {letter:'E',multiplier:'TW',row:1,col:3},
+      {letter:'R',multiplier:null,row:2,col:0},
+      {letter:'A',multiplier:null,row:2,col:1},
+      {letter:'T',multiplier:null,row:2,col:2},
+      {letter:'E',multiplier:null,row:2,col:3},
+      {letter:'B',multiplier:null,row:3,col:0},
+      {letter:'I',multiplier:null,row:3,col:1},
+      {letter:'N',multiplier:null,row:3,col:2},
+      {letter:'D',multiplier:null,row:3,col:3}
+    ];
+
+    // CAT = C(4) + A(1) + T(1) = 6
+    assertEqual(calculateWordScore([0,1,2], scoringBoard), 6, 'CAT = 6 points');
+
+    // D with DL = D(2)*2 = 4
+    assertEqual(calculateWordScore([4], scoringBoard), 4, 'D with DL = 4 points');
+
+    // O with TL = O(1)*3 = 3
+    assertEqual(calculateWordScore([5], scoringBoard), 3, 'O with TL = 3 points');
+
+    // G with DW = G(3) * 2(word) = 6
+    assertEqual(calculateWordScore([6], scoringBoard), 6, 'G with DW = 6 points');
+
+    // E with TW = E(1) * 3(word) = 3
+    assertEqual(calculateWordScore([7], scoringBoard), 3, 'E with TW = 3 points');
+
+    // DOG with DL on D, TL on O, DW on G = (2*2 + 1*3 + 3) * 2 = 20
+    assertEqual(calculateWordScore([4,5,6], scoringBoard), 20, 'DOG with multipliers = 20');
+
+    // ============ E2E TESTS ============
+
+    section('E2E - Game State');
+
+    // Reset game state
+    board = generateBoard();
+    selectedPath = [];
+    totalScore = 0;
+    usedWords.clear();
+    gameActive = false;
+
+    assert(!gameActive, 'Game inactive before start');
+
+    // Test that input is blocked when game inactive
+    const prevPath = [...selectedPath];
+    handleStart({preventDefault:()=>{}, touches:null, clientX:50, clientY:50});
+    assertEqual(selectedPath.length, prevPath.length, 'handleStart blocked when gameActive=false');
+
+    section('E2E - Start Game');
+    startGame();
+    assert(gameActive, 'gameActive true after startGame');
+    assertEqual(totalScore, 0, 'Score reset to 0');
+    assertEqual(usedWords.size, 0, 'usedWords cleared');
+    assertEqual(timeRemaining, GAME_DURATION, 'Timer reset to GAME_DURATION');
+
+    section('E2E - Drag Word Flow');
+
+    // Set up known board for predictable testing
+    board = scoringBoard.map(t => ({...t}));
+    selectedPath = [];
+    totalScore = 0;
+    usedWords.clear();
+    gameActive = true;
+    displayWord = '';
+    displayScore = 0;
+
+    // Simulate drag: C -> A -> T (indices 0, 1, 2)
+    function getTileCoords(index) {
+      const row = Math.floor(index / GRID_SIZE);
+      const col = index % GRID_SIZE;
+      const center = getTileCenter(row, col);
+      return center;
+    }
+
+    const c0 = getTileCoords(0);
+    const c1 = getTileCoords(1);
+    const c2 = getTileCoords(2);
+
+    // Mock canvas.getBoundingClientRect
+    const origGetBoundingClientRect = canvas.getBoundingClientRect;
+    canvas.getBoundingClientRect = () => ({left:0, top:0, width:BOARD_WIDTH, height:BOARD_HEIGHT});
+
+    // Start drag at tile 0
+    handleStart({preventDefault:()=>{}, touches:null, clientX:c0.x, clientY:c0.y});
+    assertEqual(selectedPath.length, 1, 'Path has 1 tile after start');
+    assertEqual(selectedPath[0], 0, 'Path starts at tile 0');
+    assert(isDragging, 'isDragging true after handleStart');
+
+    // Move to tile 1
+    handleMove({preventDefault:()=>{}, touches:null, clientX:c1.x, clientY:c1.y});
+    assertEqual(selectedPath.length, 2, 'Path has 2 tiles after move');
+    assertEqual(selectedPath[1], 1, 'Path includes tile 1');
+
+    // Move to tile 2
+    handleMove({preventDefault:()=>{}, touches:null, clientX:c2.x, clientY:c2.y});
+    assertEqual(selectedPath.length, 3, 'Path has 3 tiles after second move');
+    assertEqual(displayWord, 'CAT', 'displayWord = CAT');
+    assertEqual(displayScore, 6, 'displayScore = 6 for CAT');
+
+    // End drag - word should be validated
+    // Note: stub alternates, first call returns false, need to prime it
+    stubToggle = false; // Next call will return true
+    const scoreBefore = totalScore;
+    handleEnd({preventDefault:()=>{}});
+    
+    assertEqual(totalScore, scoreBefore + 6, 'Score increased by 6 after valid word');
+    assertIncludes([...usedWords], 'CAT', 'CAT added to usedWords');
+    assertEqual(selectedPath.length, 0, 'Path cleared after handleEnd');
+    assert(!isDragging, 'isDragging false after handleEnd');
+
+    section('E2E - Duplicate Word Rejection');
+
+    // Try to play CAT again
+    selectedPath = [];
+    displayWord = '';
+    displayScore = 0;
+    const scoreBeforeDup = totalScore;
+
+    handleStart({preventDefault:()=>{}, touches:null, clientX:c0.x, clientY:c0.y});
+    handleMove({preventDefault:()=>{}, touches:null, clientX:c1.x, clientY:c1.y});
+    handleMove({preventDefault:()=>{}, touches:null, clientX:c2.x, clientY:c2.y});
+    handleEnd({preventDefault:()=>{}});
+
+    assertEqual(totalScore, scoreBeforeDup, 'Score unchanged after duplicate word');
+    assert(showInvalid, 'showInvalid true for duplicate');
+    assertEqual(invalidMessage, 'already used', 'invalidMessage = already used');
+
+    section('E2E - Invalid Word Rejection');
+
+    // Clear timeout and reset
+    if (invalidTimeout) clearTimeout(invalidTimeout);
+    showInvalid = false;
+    selectedPath = [];
+    displayWord = '';
+    
+    // Play a new word that will be invalid (stub returns false)
+    stubToggle = true; // Next call will return false
+    const scoreBeforeInvalid = totalScore;
+
+    const c8 = getTileCoords(8);  // R
+    const c9 = getTileCoords(9);  // A
+    const c10 = getTileCoords(10); // T
+
+    handleStart({preventDefault:()=>{}, touches:null, clientX:c8.x, clientY:c8.y});
+    handleMove({preventDefault:()=>{}, touches:null, clientX:c9.x, clientY:c9.y});
+    handleMove({preventDefault:()=>{}, touches:null, clientX:c10.x, clientY:c10.y});
+    handleEnd({preventDefault:()=>{}});
+
+    assertEqual(totalScore, scoreBeforeInvalid, 'Score unchanged after invalid word');
+    assert(showInvalid, 'showInvalid true for invalid word');
+    assertEqual(invalidMessage, 'not a word', 'invalidMessage = not a word');
+
+    section('E2E - Path Backtrack');
+
+    if (invalidTimeout) clearTimeout(invalidTimeout);
+    showInvalid = false;
+    selectedPath = [];
+
+    // Start at 0, move to 1, move to 2, then back to 1
+    handleStart({preventDefault:()=>{}, touches:null, clientX:c0.x, clientY:c0.y});
+    handleMove({preventDefault:()=>{}, touches:null, clientX:c1.x, clientY:c1.y});
+    handleMove({preventDefault:()=>{}, touches:null, clientX:c2.x, clientY:c2.y});
+    assertEqual(selectedPath.length, 3, 'Path has 3 tiles');
+
+    handleMove({preventDefault:()=>{}, touches:null, clientX:c1.x, clientY:c1.y});
+    assertEqual(selectedPath.length, 2, 'Path truncated to 2 after backtrack');
+    assertEqual(displayWord, 'CA', 'displayWord = CA after backtrack');
+
+    // Clean up
+    handleEnd({preventDefault:()=>{}});
+    canvas.getBoundingClientRect = origGetBoundingClientRect;
+
+    section('E2E - Non-Adjacent Tile Rejection');
+
+    selectedPath = [];
+    gameActive = true;
+    canvas.getBoundingClientRect = () => ({left:0, top:0, width:BOARD_WIDTH, height:BOARD_HEIGHT});
+
+    const c3 = getTileCoords(3); // S at row 0, col 3
+
+    handleStart({preventDefault:()=>{}, touches:null, clientX:c0.x, clientY:c0.y});
+    assertEqual(selectedPath.length, 1, 'Started at tile 0');
+
+    // Try to jump to tile 3 (not adjacent to 0)
+    handleMove({preventDefault:()=>{}, touches:null, clientX:c3.x, clientY:c3.y});
+    assertEqual(selectedPath.length, 1, 'Path unchanged - tile 3 not adjacent to 0');
+
+    handleEnd({preventDefault:()=>{}});
+    canvas.getBoundingClientRect = origGetBoundingClientRect;
+
+    section('E2E - Game Over State');
+
+    // Simulate timer expiry
+    stopTimer();
+    timeRemaining = 0;
+    gameActive = false;
+    showGameOver();
+
+    const overlay = document.getElementById('gameOverOverlay');
+    assert(overlay.classList.contains('visible'), 'Game over overlay visible');
+
+    // Verify input blocked after game over
+    selectedPath = [];
+    handleStart({preventDefault:()=>{}, touches:null, clientX:c0.x, clientY:c0.y});
+    assertEqual(selectedPath.length, 0, 'Input blocked after game over');
+
+    section('E2E - New Game Reset');
+
+    const prevScore = totalScore;
+    usedWords.add('TESTWORD');
+    startGame();
+
+    assertEqual(totalScore, 0, 'Score reset on new game');
+    assertEqual(usedWords.size, 0, 'usedWords cleared on new game');
+    assert(gameActive, 'gameActive true after new game');
+    assert(!overlay.classList.contains('visible'), 'Overlay hidden after new game');
+
+    // ============ SUMMARY ============
+
+    stopTimer(); // Clean up timer
+    
+    results.innerHTML += `<div class="summary ${failed === 0 ? 'pass' : 'fail'}">
+      Tests: ${passed + failed} | Passed: ${passed} | Failed: ${failed}
+    </div>`;
+
+    console.log(`Tests: ${passed + failed} | Passed: ${passed} | Failed: ${failed}`);
+  </script>
+</body>
+</html>
