@@ -45,7 +45,8 @@
       color: #fff;
       font-size: 28px;
       font-weight: bold;
-      min-width: 90px;
+      width: 100px;
+      flex-shrink: 0;
     }
     .timer-icon {
       width: 28px;
@@ -54,16 +55,16 @@
     }
     .timer-display {
       font-variant-numeric: tabular-nums;
-      min-width: 52px;
-      text-align: left;
+      width: 60px;
     }
     .score {
       color: #fff;
       font-size: 36px;
       font-weight: bold;
       font-variant-numeric: tabular-nums;
-      min-width: 60px;
+      width: 80px;
       text-align: center;
+      flex-shrink: 0;
     }
     .start-btn {
       padding: 10px 20px;
@@ -74,6 +75,7 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      flex-shrink: 0;
     }
     .word-area {
       background: rgba(0,0,0,0.15);
