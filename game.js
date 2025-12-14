@@ -328,10 +328,19 @@ function lightenColor(hex, pct) {
   return `rgb(${R},${G},${B})`;
 }
 
+// Word length bonus per Ruzzle rules:
+// 5 letters: +5, 6 letters: +10, 7 letters: +15, 8 letters: +20, 9+ letters: +25
+function getLengthBonus(wordLength) {
+  if (wordLength < 5) return 0;
+  if (wordLength >= 9) return 25;
+  return 5 * (wordLength - 4);
+}
+
 function calculateWordScore(path, boardTiles) {
   path = path || selectedPath;
   boardTiles = boardTiles || board;
   if (path.length === 0) return 0;
+  
   let sum = 0, wordMult = 1;
   for (const idx of path) {
     const tile = boardTiles[idx];
@@ -342,7 +351,10 @@ function calculateWordScore(path, boardTiles) {
     else if (tile.multiplier === 'TW') wordMult *= 3;
     sum += val;
   }
-  return sum * wordMult;
+  
+  const baseScore = sum * wordMult;
+  const lengthBonus = getLengthBonus(path.length);
+  return baseScore + lengthBonus;
 }
 
 function draw() {
