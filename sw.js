@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ruzzle-v11';
+const CACHE_NAME = 'ruzzle-v12';
 const ASSETS = ['/', '/index.html', '/styles.css', '/game.js', '/manifest.json'];
 
 self.addEventListener('install', e => {
