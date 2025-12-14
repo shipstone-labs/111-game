@@ -387,7 +387,7 @@
 
       for (let i = 0; i < totalCount; i++) {
         const available = allTypes.filter(t => counts[t] < 2);
-        const type = available[Math.floor(Math.random() * available.length)]];
+        const type = available[Math.floor(Math.random() * available.length)];
         toPlace.push(type);
         counts[type]++;
       }
