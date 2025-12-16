@@ -19,13 +19,13 @@
 
 ### Scoring
 
-**Letter Values (Scrabble-style):**
+**Letter Values:**
 | Points | Letters |
 |--------|---------|
-| 1 | A, E, I, O, R, S, T |
-| 2 | D, L, N, U |
-| 3 | G |
-| 4 | B, C, F, H, M, P, W, Y |
+| 1 | A, E, I, N, O, R, S, T |
+| 2 | D, L, U |
+| 3 | G, M |
+| 4 | B, C, F, H, P, W, Y |
 | 5 | K, V |
 | 8 | J, X |
 | 10 | Q, Z |

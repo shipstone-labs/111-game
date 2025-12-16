@@ -22,7 +22,7 @@ const GAME_DURATION = 60; // seconds
 
 const LETTER_VALUES = {
   A:1, B:4, C:4, D:2, E:1, F:4, G:3, H:4,
-  I:1, J:8, K:5, L:2, M:4, N:2, O:1, P:4,
+  I:1, J:8, K:5, L:2, M:3, N:1, O:1, P:4,
   Q:10, R:1, S:1, T:1, U:2, V:5, W:4, X:8, Y:4, Z:10
 };
 
@@ -512,6 +512,7 @@ function handleEnd(e) {
         totalScore = 0;
         board = generateBoard();
         updateScore();
+        draw(); // Immediately render new board
         
         // Check for time bonus at threshold
         if (boardsSolved === BONUS_THRESHOLD) {
@@ -527,6 +528,7 @@ function handleEnd(e) {
         foundWords.clear();
         board = generateBoard();
         updateScore();
+        draw(); // Immediately render new board
         showFeedback(`${word} = 110 trap! New board.`, 'trap');
       } else if (newTotal > TARGET_SCORE) {
         // Overshoot - reset board, no credit
@@ -534,6 +536,7 @@ function handleEnd(e) {
         foundWords.clear();
         board = generateBoard();
         updateScore();
+        draw(); // Immediately render new board
         showFeedback(`${word} = ${newTotal} overshoot! New board.`, 'overshoot');
       } else {
         // Normal score
