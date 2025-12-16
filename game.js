@@ -588,9 +588,68 @@ async function init() {
 }
 
 // Service worker registration
-if ('serviceWorker' in navigator) {
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
 }
 
 // Start when DOM ready
-document.addEventListener('DOMContentLoaded', init);
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', init);
+}
+
+// Node.js exports for testing
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    // Constants
+    TARGET_SCORE, TRAP_SCORE, LETTER_VALUES, MULTIPLIER_COLORS,
+    VOWELS, GUARANTEED, HIGH_VALUE, GRID_SIZE,
+    // Board generation
+    selectLetters, generateBoard, getNeighbors, hasAdjacentVowel,
+    // Geometry
+    areAdjacent, getTileCenter, getTileAt,
+    // Scoring
+    getLengthBonus, calculateWordScore,
+    // Dictionary
+    isValidWord,
+    // For test injection
+    setDictionary: (dict) => { dictionary = dict; },
+    // State access for integration tests
+    getState: () => ({ board, totalScore, foundWords: [...foundWords], gameState }),
+    setState: (s) => { 
+      if (s.board) board = s.board;
+      if (s.totalScore !== undefined) totalScore = s.totalScore;
+      if (s.foundWords) { foundWords.clear(); s.foundWords.forEach(w => foundWords.add(w)); }
+      if (s.gameState) gameState = s.gameState;
+    },
+    // Simulate word submission (for integration tests)
+    submitWord: (path) => {
+      selectedPath = path;
+      const word = path.map(i => board[i].letter).join('');
+      
+      if (foundWords.has(word)) return { result: 'duplicate', word };
+      if (!isValidWord(word)) return { result: 'invalid', word };
+      
+      const wordScore = calculateWordScore(path, board);
+      const newTotal = totalScore + wordScore;
+      
+      if (newTotal === TARGET_SCORE) {
+        totalScore = newTotal;
+        foundWords.add(word);
+        gameState = 'won';
+        return { result: 'win', word, wordScore, totalScore };
+      } else if (newTotal === TRAP_SCORE) {
+        totalScore = 0;
+        foundWords.clear();
+        return { result: 'trap', word, wordScore, newTotal };
+      } else if (newTotal > TARGET_SCORE) {
+        totalScore = 0;
+        foundWords.clear();
+        return { result: 'overshoot', word, wordScore, newTotal };
+      } else {
+        totalScore = newTotal;
+        foundWords.add(word);
+        return { result: 'valid', word, wordScore, totalScore };
+      }
+    }
+  };
+}
