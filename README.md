@@ -1,63 +1,46 @@
-# Ruzzle PWA
+# 111
 
-A canvas-based clone of the word game Ruzzle, built as a Progressive Web App.
+A word puzzle game where you must score exactly 111 points to win.
 
-**Play:** https://ruzzle-pwa.pages.dev/
+## Rules
 
-## Features
+- Form words by connecting adjacent letters on a 4×4 grid
+- Each word scores points based on letter values and multipliers
+- **Win**: Score exactly 111 points
+- **110 Trap**: Landing on 110 resets your score to 0
+- **Overshoot**: Going over 111 resets your score to 0
+- Board persists after resets
 
-- 4x4 letter grid with drag-to-select word formation
-- Multipliers: DL (double letter), TL (triple letter), DW (double word), TW (triple word)
-- Word length bonus: +5 for 5 letters, +10 for 6, +15 for 7, +20 for 8, +25 for 9+
-- Duplicate word prevention
-- 60-second timer with game-over overlay
-- Offline support via service worker
-- Touch and mouse input
+## Multipliers
 
-## Scoring
+- **DL** (green): Double letter value
+- **TL** (blue): Triple letter value  
+- **DW** (orange): Double word value
+- **TW** (red): Triple word value
 
-| Component | Value |
-|-----------|-------|
-| Letter values | A=1, B=4, C=4, D=2, E=1, F=4, G=3, H=4, I=1, J=8, K=5, L=2, M=4, N=2, O=1, P=4, Q=10, R=1, S=1, T=1, U=2, V=5, W=4, X=8, Y=4, Z=10 |
-| DL | Double letter value |
-| TL | Triple letter value |
-| DW | Double word total |
-| TW | Triple word total |
-| Length 5 | +5 bonus |
-| Length 6 | +10 bonus |
-| Length 7 | +15 bonus |
-| Length 8 | +20 bonus |
-| Length 9+ | +25 bonus |
+## Length Bonus
 
-## Files
+- 5 letters: +5 points
+- 6 letters: +10 points
+- 7 letters: +15 points
+- 8+ letters: +20-25 points
 
-- `index.html` - Game markup
+## Tech
+
+Static PWA with local dictionary (83K words, 203KB gzipped). No server required.
+
+## Deploy
+
+Upload files to any static host. No build step.
+
+Files:
+- `index.html` - Entry point
 - `styles.css` - Styling
 - `game.js` - Game logic
-- `test.html` - Test suite (unit + e2e)
-- `sw.js` - Service worker for offline caching
+- `words.txt.gz` - Dictionary (TWL06, 2-8 letter words)
 - `manifest.json` - PWA manifest
+- `sw.js` - Service worker for offline support
 
-## Testing
+## Deferred Features
 
-Open `test.html` in a browser or visit https://ruzzle-pwa.pages.dev/test.html
-
-Tests cover:
-- Timer formatting
-- Word length bonus calculation
-- Tile adjacency
-- Board generation (letter selection, high-value adjacency)
-- Scoring with multipliers
-- E2E gameplay flows (drag, duplicate rejection, game over, reset)
-
-## Development
-
-No build step required. Edit files and deploy to Cloudflare Pages.
-
-When making changes:
-1. Bump `CACHE_NAME` version in `sw.js`
-2. Run tests to verify
-
-## License
-
-MIT
+- [ ] Timer with puzzle completion bonuses (+30s for 4 puzzles)
