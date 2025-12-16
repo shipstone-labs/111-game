@@ -2,45 +2,55 @@
 
 A word puzzle game where you must score exactly 111 points to win.
 
+**Play:** https://ruzzle-pwa.pages.dev (or deploy your own)
+
 ## Rules
 
 - Form words by connecting adjacent letters on a 4×4 grid
-- Each word scores points based on letter values and multipliers
-- **Win**: Score exactly 111 points
-- **110 Trap**: Landing on 110 resets your score to 0
-- **Overshoot**: Going over 111 resets your score to 0
-- Board persists after resets
+- Minimum 2 letters, diagonal connections allowed
+- **Win:** Score exactly 111 points
+- **Trap:** Landing on 110 resets to 0
+- **Overshoot:** Going over 111 resets to 0
+- Board persists after reset—find a different path
 
-## Multipliers
+See [DESIGN.md](DESIGN.md) for complete game design.
 
-- **DL** (green): Double letter value
-- **TL** (blue): Triple letter value  
-- **DW** (orange): Double word value
-- **TW** (red): Triple word value
+## Quick Start
 
-## Length Bonus
+```bash
+# Serve locally
+python3 -m http.server 8111
 
-- 5 letters: +5 points
-- 6 letters: +10 points
-- 7 letters: +15 points
-- 8+ letters: +20-25 points
+# Run tests
+node test.js
+```
 
-## Tech
+Open http://localhost:8111
 
-Static PWA with local dictionary (83K words, 203KB gzipped). No server required.
+## Files
+
+```
+├── index.html      # Entry point
+├── styles.css      # UI styling
+├── game.js         # Game logic
+├── words.txt.gz    # Dictionary (83K words, 203KB)
+├── sw.js           # Service worker
+├── manifest.json   # PWA manifest
+├── test.js         # Node.js test suite
+└── DESIGN.md       # Game design document
+```
 
 ## Deploy
 
-Upload files to any static host. No build step.
+Static files only. Upload to any host (Cloudflare Pages, Netlify, GitHub Pages, etc.).
 
-Files:
-- `index.html` - Entry point
-- `styles.css` - Styling
-- `game.js` - Game logic
-- `words.txt.gz` - Dictionary (TWL06, 2-8 letter words)
-- `manifest.json` - PWA manifest
-- `sw.js` - Service worker for offline support
+No build step required.
 
-## Deferred Features
+## TODO
 
-- [ ] Timer with puzzle completion bonuses (+30s for 4 puzzles)
+- [ ] Timer (60-second countdown)
+- [ ] Timer bonus (+30s for completing puzzles)
+
+## License
+
+Proprietary
