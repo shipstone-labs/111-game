@@ -18,6 +18,7 @@ const SELECTION_RADIUS = TILE_SIZE * 0.5;
 
 const TARGET_SCORE = 111;
 const TRAP_SCORE = 110;
+const GAME_DURATION = 60; // seconds
 
 const LETTER_VALUES = {
   A:1, B:4, C:4, D:2, E:1, F:4, G:3, H:4,
@@ -47,15 +48,19 @@ let currentPos = null;
 let displayWord = '';
 let totalScore = 0;
 let foundWords = new Set();
-let gameState = 'ready'; // 'ready', 'playing', 'won'
+let gameState = 'ready'; // 'ready', 'playing', 'won', 'timeout'
 let feedbackMessage = '';
 let feedbackType = ''; // 'invalid', 'duplicate', 'trap', 'overshoot'
+
+/** Timer state */
+let timeRemaining = GAME_DURATION;
+let timerInterval = null;
 
 /** @type {Set<string>|null} Dictionary loaded from words.txt.gz */
 let dictionary = null;
 
 // DOM elements (initialized in init())
-let canvas, ctx, scoreDisplay, startBtn, targetDisplay, wordPill, wordText;
+let canvas, ctx, scoreDisplay, startBtn, targetDisplay, wordPill, wordText, timerDisplay;
 let feedbackTimeout = null;
 
 // =============================================================================
@@ -500,8 +505,10 @@ function handleEnd(e) {
         totalScore = newTotal;
         foundWords.add(word);
         gameState = 'won';
+        stopTimer();
         updateScore('winner');
         showFeedback(`${word} +${wordScore} = 111!`, 'win');
+        startBtn.textContent = 'New Game';
       } else if (newTotal === TRAP_SCORE) {
         // 110 trap - reset
         totalScore = 0;
@@ -570,6 +577,58 @@ function hideWordPill() {
   wordPill.className = 'word-pill';
 }
 
+// =============================================================================
+// TIMER
+// =============================================================================
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function updateTimerDisplay() {
+  timerDisplay.textContent = formatTime(timeRemaining);
+  
+  // Update timer styling based on remaining time
+  if (timeRemaining <= 10) {
+    timerDisplay.className = 'timer critical';
+  } else if (timeRemaining <= 20) {
+    timerDisplay.className = 'timer warning';
+  } else {
+    timerDisplay.className = 'timer';
+  }
+}
+
+function startTimer() {
+  stopTimer();
+  timeRemaining = GAME_DURATION;
+  updateTimerDisplay();
+  
+  timerInterval = setInterval(() => {
+    timeRemaining--;
+    updateTimerDisplay();
+    
+    if (timeRemaining <= 0) {
+      stopTimer();
+      endGameTimeout();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function endGameTimeout() {
+  gameState = 'timeout';
+  showFeedback(`Time's up! Score: ${totalScore}`, 'timeout');
+  startBtn.textContent = 'New Game';
+}
+
 function startGame() {
   if (!dictionary) {
     console.error('Dictionary not loaded');
@@ -582,6 +641,7 @@ function startGame() {
   board = generateBoard();
   updateScore();
   startBtn.textContent = 'Reset';
+  startTimer();
   draw();
 }
 
@@ -590,6 +650,7 @@ function resetGame() {
   foundWords.clear();
   gameState = 'playing';
   updateScore();
+  startTimer();
   // Note: board persists on reset (111 rule)
   draw();
 }
@@ -606,6 +667,7 @@ async function init() {
   targetDisplay = document.getElementById('targetValue');
   wordPill = document.getElementById('wordPill');
   wordText = document.getElementById('wordText');
+  timerDisplay = document.getElementById('timer');
   
   canvas.width = BOARD_WIDTH;
   canvas.height = BOARD_HEIGHT;
@@ -634,7 +696,7 @@ async function init() {
   canvas.addEventListener('touchend', handleEnd, { passive: false });
   
   startBtn.addEventListener('click', () => {
-    if (gameState === 'ready' || gameState === 'won') {
+    if (gameState === 'ready' || gameState === 'won' || gameState === 'timeout') {
       startGame();
     } else {
       resetGame();

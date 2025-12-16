@@ -80,9 +80,16 @@
 ## User Interface
 
 ### Layout
-- Header: Target display, score, Play/Reset button
+- Header: Target display, score, timer, Play/Reset button
 - Word pill: Shows current selection and feedback
 - Canvas: 4×4 tile grid
+
+### Timer Display
+| Time Remaining | Display |
+|----------------|---------|
+| > 20 seconds | Blue text |
+| 11-20 seconds | Yellow text (warning) |
+| ≤ 10 seconds | Red pulsing text (critical) |
 
 ### Feedback States
 | State | Display |
@@ -94,11 +101,13 @@
 | 110 trap | Red pill with shake animation |
 | Overshoot | Red pill with shake animation |
 | Win | Green pill with pulse animation |
+| Timeout | Orange pill with final score |
 
 ### Game States
 1. **Ready** — Blank board, Play button enabled
-2. **Playing** — Board visible, accepting input
-3. **Won** — Board frozen, Play button becomes "New Game"
+2. **Playing** — Board visible, timer counting down, accepting input
+3. **Won** — Board frozen, timer stopped, Play button becomes "New Game"
+4. **Timeout** — Timer reached 0, board frozen, Play button becomes "New Game"
 
 ## Technical Implementation
 
@@ -124,11 +133,6 @@
 
 ## Deferred Features
 
-### Timer System (v2)
-- 60-second countdown per round
-- Game ends when timer reaches 0
-- Timer starts on Play
-
 ### Timer Bonus (v2+)
 - +30 seconds for completing 4 puzzles
 - Puzzle = successfully reaching 111
@@ -139,7 +143,13 @@
 
 ## Version History
 
-### v1.0 (Current)
+### v1.1 (Current)
+- 60-second countdown timer
+- Timer starts on Play, resets on Reset
+- Game ends when timer reaches 0
+- Visual warnings at 20s (yellow) and 10s (red pulsing)
+
+### v1.0
 - Core gameplay without timer
 - Local dictionary validation
 - 111/110/overshoot rules

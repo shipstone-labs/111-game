@@ -58,6 +58,24 @@ body {
   animation: shake 0.5s ease-in-out;
 }
 
+.timer {
+  color: #4a9eda;
+  font-size: 24px;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  min-width: 50px;
+  text-align: center;
+}
+
+.timer.warning {
+  color: #FF9800;
+}
+
+.timer.critical {
+  color: #F44336;
+  animation: pulse 0.5s ease-in-out infinite;
+}
+
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.2); }
@@ -142,6 +160,11 @@ canvas {
   background: linear-gradient(135deg, #4CAF50, #8BC34A);
   color: #fff;
   animation: pulse 0.5s ease-in-out;
+}
+
+.word-pill.timeout {
+  background: #FF9800;
+  color: #fff;
 }
 
 .word-pill.selecting {
