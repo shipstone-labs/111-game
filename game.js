@@ -55,7 +55,8 @@ let feedbackType = ''; // 'invalid', 'duplicate', 'trap', 'overshoot'
 let dictionary = null;
 
 // DOM elements (initialized in init())
-let canvas, ctx, scoreDisplay, startBtn, targetDisplay;
+let canvas, ctx, scoreDisplay, startBtn, targetDisplay, wordPill, wordText;
+let feedbackTimeout = null;
 
 // =============================================================================
 // DICTIONARY
@@ -251,10 +252,39 @@ function lightenColor(hex, pct) {
   return `rgb(${R},${G},${B})`;
 }
 
+function drawBlankBoard() {
+  const cornerRadius = 12;
+  
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 4; col++) {
+      const x = BOARD_PADDING + col * (TILE_SIZE + TILE_GAP);
+      const y = BOARD_PADDING + row * (TILE_SIZE + TILE_GAP);
+      
+      // Shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.beginPath();
+      ctx.roundRect(x + 3, y + 4, TILE_SIZE, TILE_SIZE, cornerRadius);
+      ctx.fill();
+      
+      // Empty tile
+      ctx.fillStyle = '#252540';
+      ctx.beginPath();
+      ctx.roundRect(x, y, TILE_SIZE, TILE_SIZE, cornerRadius);
+      ctx.fill();
+    }
+  }
+}
+
 function draw() {
   // Background
   ctx.fillStyle = '#1a1a2e';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Don't draw tiles before game starts
+  if (gameState === 'ready') {
+    drawBlankBoard();
+    return;
+  }
   
   const cornerRadius = 12;
   const faceInset = 4;
@@ -415,6 +445,7 @@ function handleStart(e) {
     isDragging = true;
     currentPos = coords;
     displayWord = board[tile.index].letter;
+    showSelecting(displayWord);
     draw();
   }
 }
@@ -440,6 +471,7 @@ function handleMove(e) {
       }
     }
     displayWord = selectedPath.map(i => board[i].letter).join('');
+    showSelecting(displayWord);
   }
   draw();
 }
@@ -490,6 +522,9 @@ function handleEnd(e) {
         showFeedback(`${word} +${wordScore}`, 'valid');
       }
     }
+  } else {
+    // Word too short, hide the selecting display
+    hideWordPill();
   }
   
   selectedPath = [];
@@ -507,10 +542,32 @@ function updateScore(state = '') {
 }
 
 function showFeedback(message, type) {
-  feedbackMessage = message;
-  feedbackType = type;
-  // For now, console log. TODO: Add visual feedback element
-  console.log(`[${type}] ${message}`);
+  if (feedbackTimeout) {
+    clearTimeout(feedbackTimeout);
+    feedbackTimeout = null;
+  }
+  
+  wordText.textContent = message;
+  wordPill.className = `word-pill visible ${type}`;
+  
+  // Auto-hide after delay (except for win)
+  if (type !== 'win') {
+    feedbackTimeout = setTimeout(() => {
+      wordPill.className = 'word-pill';
+      feedbackTimeout = null;
+    }, 1500);
+  }
+}
+
+function showSelecting(word) {
+  if (feedbackTimeout) return; // Don't override feedback
+  wordText.textContent = word;
+  wordPill.className = 'word-pill visible selecting';
+}
+
+function hideWordPill() {
+  if (feedbackTimeout) return; // Don't hide during feedback
+  wordPill.className = 'word-pill';
 }
 
 function startGame() {
@@ -547,6 +604,8 @@ async function init() {
   scoreDisplay = document.getElementById('scoreValue');
   startBtn = document.getElementById('startBtn');
   targetDisplay = document.getElementById('targetValue');
+  wordPill = document.getElementById('wordPill');
+  wordText = document.getElementById('wordText');
   
   canvas.width = BOARD_WIDTH;
   canvas.height = BOARD_HEIGHT;
@@ -582,8 +641,7 @@ async function init() {
     }
   });
   
-  // Generate initial board (not playable until started)
-  board = generateBoard();
+  // Draw blank board
   draw();
 }
 

@@ -96,3 +96,55 @@ canvas {
   align-items: center;
   justify-content: center;
 }
+
+
+.word-pill {
+  padding: 8px 20px;
+  border-radius: 24px;
+  font-size: 18px;
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.word-pill.visible {
+  opacity: 1;
+}
+
+.word-pill.valid {
+  background: #4CAF50;
+  color: #fff;
+}
+
+.word-pill.invalid {
+  background: #F44336;
+  color: #fff;
+}
+
+.word-pill.duplicate {
+  background: #FF9800;
+  color: #fff;
+}
+
+.word-pill.trap {
+  background: #F44336;
+  color: #fff;
+  animation: shake 0.5s ease-in-out;
+}
+
+.word-pill.overshoot {
+  background: #F44336;
+  color: #fff;
+  animation: shake 0.5s ease-in-out;
+}
+
+.word-pill.win {
+  background: linear-gradient(135deg, #4CAF50, #8BC34A);
+  color: #fff;
+  animation: pulse 0.5s ease-in-out;
+}
+
+.word-pill.selecting {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
