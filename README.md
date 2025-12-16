@@ -1,6 +1,6 @@
 # 111
 
-A word puzzle game where you must score exactly 111 points to win.
+A word puzzle game where you solve boards by scoring exactly 111 points.
 
 **Play:** https://ruzzle-pwa.pages.dev (or deploy your own)
 
@@ -8,10 +8,11 @@ A word puzzle game where you must score exactly 111 points to win.
 
 - Form words by connecting adjacent letters on a 4×4 grid
 - Minimum 2 letters, diagonal connections allowed
-- **Win:** Score exactly 111 points
-- **Trap:** Landing on 110 resets to 0
-- **Overshoot:** Going over 111 resets to 0
-- Board persists after reset—find a different path
+- **Goal:** Score exactly 111 to solve the board
+- **Trap:** Landing on 110 resets with a new board (no credit)
+- **Overshoot:** Going over 111 resets with a new board (no credit)
+- **Timer:** 60 seconds to solve as many boards as possible
+- **Bonus:** Solve 3 boards to earn +30 seconds
 
 See [DESIGN.md](DESIGN.md) for complete game design.
 
@@ -48,8 +49,10 @@ No build step required.
 
 ## TODO
 
-- [ ] Timer (60-second countdown)
-- [ ] Timer bonus (+30s for completing puzzles)
+- [x] Timer (60-second countdown)
+- [x] Timer bonus (+30s at 3 boards)
+- [ ] Leaderboards
+- [ ] Multiplayer challenge mode
 
 ## License
 

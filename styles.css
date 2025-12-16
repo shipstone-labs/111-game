@@ -42,20 +42,26 @@ body {
   font-weight: bold;
 }
 
-.score {
-  color: #fff;
-  font-size: 42px;
+.scores {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.boards {
+  color: #4CAF50;
+  font-size: 18px;
   font-weight: bold;
 }
 
-.score.winner {
-  color: #4CAF50;
+.boards.winner {
   animation: pulse 0.5s ease-in-out;
 }
 
-.score.trap {
-  color: #F44336;
-  animation: shake 0.5s ease-in-out;
+.current-score {
+  color: #888;
+  font-size: 14px;
 }
 
 .timer {
@@ -158,6 +164,18 @@ canvas {
 
 .word-pill.win {
   background: linear-gradient(135deg, #4CAF50, #8BC34A);
+  color: #fff;
+  animation: pulse 0.5s ease-in-out;
+}
+
+.word-pill.solved {
+  background: linear-gradient(135deg, #4CAF50, #8BC34A);
+  color: #fff;
+  animation: pulse 0.5s ease-in-out;
+}
+
+.word-pill.bonus {
+  background: linear-gradient(135deg, #FF9800, #FFC107);
   color: #fff;
   animation: pulse 0.5s ease-in-out;
 }

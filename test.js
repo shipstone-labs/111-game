@@ -231,37 +231,47 @@ assertEqual(game.getState().totalScore, 50, 'Score unchanged after invalid');
 section('Game State - Win at 111');
 // Create board where we can score exactly 111
 // Start at 105, score CAT (6) = 111
-game.setState({ board: scoringBoard, totalScore: 105, foundWords: [], gameState: 'playing' });
+game.setState({ board: scoringBoard, totalScore: 105, foundWords: [], gameState: 'playing', boardsSolved: 0 });
 result = game.submitWord([0,1,2]); // CAT = 6
-assertEqual(result.result, 'win', 'Win at exactly 111');
-assertEqual(result.totalScore, 111, 'Final score 111');
-assertEqual(game.getState().gameState, 'won', 'Game state is won');
+assertEqual(result.result, 'solved', 'Solved at exactly 111');
+assertEqual(result.boardsSolved, 1, 'Boards solved incremented to 1');
+assertEqual(game.getState().totalScore, 0, 'Score reset to 0 for new board');
+assertEqual(game.getState().gameState, 'playing', 'Game continues playing');
 
 section('Game State - 110 Trap');
 // Start at 104, score CAT (6) = 110 -> trap
-game.setState({ board: scoringBoard, totalScore: 104, foundWords: [], gameState: 'playing' });
+game.setState({ board: scoringBoard, totalScore: 104, foundWords: [], gameState: 'playing', boardsSolved: 2 });
 result = game.submitWord([0,1,2]); // CAT = 6 -> 110
 assertEqual(result.result, 'trap', '110 triggers trap');
 assertEqual(result.newTotal, 110, 'Would have been 110');
 assertEqual(game.getState().totalScore, 0, 'Score reset to 0');
 assertEqual(game.getState().foundWords.length, 0, 'Found words cleared');
 assertEqual(game.getState().gameState, 'playing', 'Still playing after trap');
+assertEqual(result.boardsSolved, 2, 'Boards solved unchanged after trap');
 
 section('Game State - Overshoot');
 // Start at 108, score CAT (6) = 114 -> overshoot
-game.setState({ board: scoringBoard, totalScore: 108, foundWords: [], gameState: 'playing' });
+game.setState({ board: scoringBoard, totalScore: 108, foundWords: [], gameState: 'playing', boardsSolved: 1 });
 result = game.submitWord([0,1,2]); // CAT = 6 -> 114
 assertEqual(result.result, 'overshoot', 'Overshoot detected');
 assertEqual(result.newTotal, 114, 'Would have been 114');
 assertEqual(game.getState().totalScore, 0, 'Score reset to 0');
 assertEqual(game.getState().foundWords.length, 0, 'Found words cleared');
+assertEqual(result.boardsSolved, 1, 'Boards solved unchanged after overshoot');
 
-section('Game State - Board Persists After Reset');
+section('Game State - Board Changes After Trap');
 const boardBefore = JSON.stringify(game.getState().board);
-game.setState({ board: scoringBoard, totalScore: 104, foundWords: [], gameState: 'playing' });
+game.setState({ board: scoringBoard, totalScore: 104, foundWords: [], gameState: 'playing', boardsSolved: 0 });
 game.submitWord([0,1,2]); // Triggers trap
 const boardAfter = JSON.stringify(game.getState().board);
-assertEqual(boardBefore, boardAfter, 'Board unchanged after trap reset');
+assert(boardBefore !== boardAfter, 'Board changes after trap (new board generated)');
+
+section('Game State - Bonus at 3 Boards');
+game.setState({ board: scoringBoard, totalScore: 105, foundWords: [], gameState: 'playing', boardsSolved: 2 });
+result = game.submitWord([0,1,2]); // CAT = 6 -> 111, boards becomes 3
+assertEqual(result.result, 'solved', 'Solved at 111');
+assertEqual(result.boardsSolved, 3, 'Boards solved is now 3');
+assertEqual(result.gotBonus, true, 'Got bonus at 3 boards');
 
 // =============================================================================
 // SUMMARY

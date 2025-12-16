@@ -54,11 +54,12 @@
 
 | Condition | Result |
 |-----------|--------|
-| Score exactly 111 | **Win** |
-| Score 110 | Reset to 0 (trap) |
-| Score > 111 | Reset to 0 (overshoot) |
+| Score exactly 111 | Board solved! New board generated, boards counter +1 |
+| Score 110 | Trap! New board generated, no credit |
+| Score > 111 | Overshoot! New board generated, no credit |
+| Timer reaches 0 | Game over, final score = boards solved |
 
-**Board Persistence:** The same board remains after a reset. Players must find a different path to 111.
+**Time Bonus:** Solving 3 boards adds +30 seconds to the timer.
 
 ### Dictionary
 - TWL06 (Tournament Word List)
@@ -100,14 +101,14 @@
 | Duplicate | Orange pill "Already used" |
 | 110 trap | Red pill with shake animation |
 | Overshoot | Red pill with shake animation |
-| Win | Green pill with pulse animation |
-| Timeout | Orange pill with final score |
+| Solved | Green pill with pulse animation |
+| Bonus | Orange/gold pill with pulse animation (+30s) |
+| Timeout | Orange pill with final boards count |
 
 ### Game States
 1. **Ready** — Blank board, Play button enabled
 2. **Playing** — Board visible, timer counting down, accepting input
-3. **Won** — Board frozen, timer stopped, Play button becomes "New Game"
-4. **Timeout** — Timer reached 0, board frozen, Play button becomes "New Game"
+3. **Timeout** — Timer reached 0, board frozen, Play button becomes "New Game"
 
 ## Technical Implementation
 
@@ -133,17 +134,20 @@
 
 ## Deferred Features
 
-### Timer Bonus (v2+)
-- +30 seconds for completing 4 puzzles
-- Puzzle = successfully reaching 111
-
 ### Multiplayer (future)
 - Challenge mode with shared boards
 - Leaderboards
 
 ## Version History
 
-### v1.1 (Current)
+### v1.2 (Current)
+- New scoring: solve multiple boards in 60 seconds
+- Reaching 111 generates new board, increments boards counter
+- 110 trap and overshoot generate new board (no credit)
+- Final score = boards solved when timer expires
+- +30 second bonus when reaching 3 boards solved
+
+### v1.1
 - 60-second countdown timer
 - Timer starts on Play, resets on Reset
 - Game ends when timer reaches 0

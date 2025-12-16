@@ -48,7 +48,7 @@ let currentPos = null;
 let displayWord = '';
 let totalScore = 0;
 let foundWords = new Set();
-let gameState = 'ready'; // 'ready', 'playing', 'won', 'timeout'
+let gameState = 'ready'; // 'ready', 'playing', 'timeout'
 let feedbackMessage = '';
 let feedbackType = ''; // 'invalid', 'duplicate', 'trap', 'overshoot'
 
@@ -56,11 +56,16 @@ let feedbackType = ''; // 'invalid', 'duplicate', 'trap', 'overshoot'
 let timeRemaining = GAME_DURATION;
 let timerInterval = null;
 
+/** Boards solved counter (final score) */
+let boardsSolved = 0;
+const BONUS_THRESHOLD = 3;
+const BONUS_TIME = 30;
+
 /** @type {Set<string>|null} Dictionary loaded from words.txt.gz */
 let dictionary = null;
 
 // DOM elements (initialized in init())
-let canvas, ctx, scoreDisplay, startBtn, targetDisplay, wordPill, wordText, timerDisplay;
+let canvas, ctx, scoreDisplay, boardsDisplay, startBtn, targetDisplay, wordPill, wordText, timerDisplay;
 let feedbackTimeout = null;
 
 // =============================================================================
@@ -501,26 +506,35 @@ function handleEnd(e) {
       const newTotal = totalScore + wordScore;
       
       if (newTotal === TARGET_SCORE) {
-        // WIN!
-        totalScore = newTotal;
-        foundWords.add(word);
-        gameState = 'won';
-        stopTimer();
-        updateScore('winner');
-        showFeedback(`${word} +${wordScore} = 111!`, 'win');
-        startBtn.textContent = 'New Game';
+        // Solved! Increment counter and generate new board
+        boardsSolved++;
+        foundWords.clear();
+        totalScore = 0;
+        board = generateBoard();
+        updateScore();
+        
+        // Check for time bonus at threshold
+        if (boardsSolved === BONUS_THRESHOLD) {
+          timeRemaining += BONUS_TIME;
+          updateTimerDisplay();
+          showFeedback(`${word} = 111! Board #${boardsSolved} +${BONUS_TIME}s bonus!`, 'bonus');
+        } else {
+          showFeedback(`${word} = 111! Board #${boardsSolved}`, 'solved');
+        }
       } else if (newTotal === TRAP_SCORE) {
-        // 110 trap - reset
+        // 110 trap - reset board, no credit
         totalScore = 0;
         foundWords.clear();
-        updateScore('trap');
-        showFeedback(`${word} = 110 trap! Reset.`, 'trap');
+        board = generateBoard();
+        updateScore();
+        showFeedback(`${word} = 110 trap! New board.`, 'trap');
       } else if (newTotal > TARGET_SCORE) {
-        // Overshoot - reset
+        // Overshoot - reset board, no credit
         totalScore = 0;
         foundWords.clear();
-        updateScore('trap');
-        showFeedback(`${word} = ${newTotal} overshoot! Reset.`, 'overshoot');
+        board = generateBoard();
+        updateScore();
+        showFeedback(`${word} = ${newTotal} overshoot! New board.`, 'overshoot');
       } else {
         // Normal score
         totalScore = newTotal;
@@ -545,7 +559,13 @@ function handleEnd(e) {
 
 function updateScore(state = '') {
   scoreDisplay.textContent = totalScore;
-  scoreDisplay.className = 'score' + (state ? ` ${state}` : '');
+  boardsDisplay.textContent = boardsSolved;
+  
+  // Apply animation class to boards display for special states
+  if (state === 'solved' || state === 'bonus') {
+    boardsDisplay.parentElement.className = 'boards winner';
+    setTimeout(() => { boardsDisplay.parentElement.className = 'boards'; }, 500);
+  }
 }
 
 function showFeedback(message, type) {
@@ -625,7 +645,7 @@ function stopTimer() {
 
 function endGameTimeout() {
   gameState = 'timeout';
-  showFeedback(`Time's up! Score: ${totalScore}`, 'timeout');
+  showFeedback(`Time's up! Boards: ${boardsSolved}`, 'timeout');
   startBtn.textContent = 'New Game';
 }
 
@@ -637,6 +657,7 @@ function startGame() {
   
   gameState = 'playing';
   totalScore = 0;
+  boardsSolved = 0;
   foundWords.clear();
   board = generateBoard();
   updateScore();
@@ -647,11 +668,12 @@ function startGame() {
 
 function resetGame() {
   totalScore = 0;
+  boardsSolved = 0;
   foundWords.clear();
+  board = generateBoard();
   gameState = 'playing';
   updateScore();
   startTimer();
-  // Note: board persists on reset (111 rule)
   draw();
 }
 
@@ -663,6 +685,7 @@ async function init() {
   canvas = document.getElementById('board');
   ctx = canvas.getContext('2d');
   scoreDisplay = document.getElementById('scoreValue');
+  boardsDisplay = document.getElementById('boardsValue');
   startBtn = document.getElementById('startBtn');
   targetDisplay = document.getElementById('targetValue');
   wordPill = document.getElementById('wordPill');
@@ -696,7 +719,7 @@ async function init() {
   canvas.addEventListener('touchend', handleEnd, { passive: false });
   
   startBtn.addEventListener('click', () => {
-    if (gameState === 'ready' || gameState === 'won' || gameState === 'timeout') {
+    if (gameState === 'ready' || gameState === 'timeout') {
       startGame();
     } else {
       resetGame();
@@ -723,6 +746,7 @@ if (typeof module !== 'undefined' && module.exports) {
     // Constants
     TARGET_SCORE, TRAP_SCORE, LETTER_VALUES, MULTIPLIER_COLORS,
     VOWELS, GUARANTEED, HIGH_VALUE, GRID_SIZE,
+    BONUS_THRESHOLD, BONUS_TIME, GAME_DURATION,
     // Board generation
     selectLetters, generateBoard, getNeighbors, hasAdjacentVowel,
     // Geometry
@@ -734,10 +758,11 @@ if (typeof module !== 'undefined' && module.exports) {
     // For test injection
     setDictionary: (dict) => { dictionary = dict; },
     // State access for integration tests
-    getState: () => ({ board, totalScore, foundWords: [...foundWords], gameState }),
+    getState: () => ({ board, totalScore, boardsSolved, foundWords: [...foundWords], gameState }),
     setState: (s) => { 
       if (s.board) board = s.board;
       if (s.totalScore !== undefined) totalScore = s.totalScore;
+      if (s.boardsSolved !== undefined) boardsSolved = s.boardsSolved;
       if (s.foundWords) { foundWords.clear(); s.foundWords.forEach(w => foundWords.add(w)); }
       if (s.gameState) gameState = s.gameState;
     },
@@ -753,18 +778,25 @@ if (typeof module !== 'undefined' && module.exports) {
       const newTotal = totalScore + wordScore;
       
       if (newTotal === TARGET_SCORE) {
-        totalScore = newTotal;
-        foundWords.add(word);
-        gameState = 'won';
-        return { result: 'win', word, wordScore, totalScore };
+        // Solved - increment boards, reset for next board
+        boardsSolved++;
+        totalScore = 0;
+        foundWords.clear();
+        board = generateBoard();
+        const gotBonus = boardsSolved === BONUS_THRESHOLD;
+        return { result: 'solved', word, wordScore, boardsSolved, gotBonus };
       } else if (newTotal === TRAP_SCORE) {
+        // Trap - new board, no credit
         totalScore = 0;
         foundWords.clear();
-        return { result: 'trap', word, wordScore, newTotal };
+        board = generateBoard();
+        return { result: 'trap', word, wordScore, newTotal, boardsSolved };
       } else if (newTotal > TARGET_SCORE) {
+        // Overshoot - new board, no credit
         totalScore = 0;
         foundWords.clear();
-        return { result: 'overshoot', word, wordScore, newTotal };
+        board = generateBoard();
+        return { result: 'overshoot', word, wordScore, newTotal, boardsSolved };
       } else {
         totalScore = newTotal;
         foundWords.add(word);
