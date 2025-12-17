@@ -15,13 +15,13 @@ DO NOT read the entire codebase. Read only what STATUS says.
 ## STATUS (UPDATE AFTER EVERY COMMIT)
 
 ### Current Phase
-A-1: Expose timeRemaining in getState()
+B-1: Write test for bonus time mutation
 
 ### Branch
 fix/pm-feedback-dec17
 
 ### Last Checkpoint
-2025-12-17 16:25 — Branch created, tests pass (87/87)
+2025-12-17 16:32 — A-1/A-2 complete (7a1d6ef), timeRemaining exposed in state
 
 ### Test Status
 ```
@@ -29,16 +29,18 @@ node test.js → 87/87 PASSED
 ```
 
 ### Files This Phase
-- game.js (lines 580-620: getState/setState functions)
-- test.js (add new tests at end)
+- test.js (add bonus time mutation test at end)
 
 ### Next Action
-A-1: Add timeRemaining to getState() return object
+B-1: Write test verifying timeRemaining increases by BONUS_TIME at 3 boards
 
 ### Completed Steps
 - [x] Verify tests pass on main
 - [x] Create branch fix/pm-feedback-dec17
 - [x] Update CLAUDE-DEV-PLAN.md with micro-phases
+- [x] A-1: Add timeRemaining to getState()
+- [x] A-2: Add timeRemaining to setState()
+- [x] Fix submitWord to mutate timeRemaining on bonus
 
 ### Blockers
 None
