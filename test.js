@@ -69,6 +69,7 @@ assertEqual(game.GRID_SIZE, 4, 'GRID_SIZE = 4');
 assertEqual(game.LETTER_VALUES['A'], 1, 'A = 1 point');
 assertEqual(game.LETTER_VALUES['Q'], 10, 'Q = 10 points');
 assertEqual(game.LETTER_VALUES['Z'], 10, 'Z = 10 points');
+assertEqual(game.FEEDBACK_DURATION, 1500, 'FEEDBACK_DURATION = 1500ms');
 
 section('Length Bonus');
 assertEqual(game.getLengthBonus(1), 0, '1 letter = 0 bonus');

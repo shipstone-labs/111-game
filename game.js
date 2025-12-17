@@ -19,6 +19,7 @@ const SELECTION_RADIUS = TILE_SIZE * 0.5;
 const TARGET_SCORE = 111;
 const TRAP_SCORE = 110;
 const GAME_DURATION = 60; // seconds
+const FEEDBACK_DURATION = 1500; // ms - how long feedback message shows
 
 const LETTER_VALUES = {
   A:1, B:4, C:4, D:2, E:1, F:4, G:3, H:4,
@@ -585,7 +586,7 @@ function showFeedback(message, type) {
     feedbackTimeout = setTimeout(() => {
       wordPill.className = 'word-pill';
       feedbackTimeout = null;
-    }, 1500);
+    }, FEEDBACK_DURATION);
   }
 }
 
@@ -758,7 +759,7 @@ if (typeof module !== 'undefined' && module.exports) {
     // Constants
     TARGET_SCORE, TRAP_SCORE, LETTER_VALUES, MULTIPLIER_COLORS,
     VOWELS, GUARANTEED, HIGH_VALUE, GRID_SIZE,
-    BONUS_THRESHOLD, BONUS_TIME, GAME_DURATION,
+    BONUS_THRESHOLD, BONUS_TIME, GAME_DURATION, FEEDBACK_DURATION,
     // Board generation
     selectLetters, generateBoard, getNeighbors, hasAdjacentVowel,
     // Geometry
