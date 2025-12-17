@@ -273,6 +273,27 @@ assertEqual(result.result, 'solved', 'Solved at 111');
 assertEqual(result.boardsSolved, 3, 'Boards solved is now 3');
 assertEqual(result.gotBonus, true, 'Got bonus at 3 boards');
 
+section('Game State - Bonus Time Mutation');
+// Verify timeRemaining actually increases (not just gotBonus flag)
+game.setState({ board: scoringBoard, totalScore: 105, foundWords: [], gameState: 'playing', boardsSolved: 2, timeRemaining: 30 });
+const timeBefore = game.getState().timeRemaining;
+result = game.submitWord([0,1,2]); // CAT = 6 -> 111, boards becomes 3, triggers bonus
+const timeAfter = game.getState().timeRemaining;
+assertEqual(timeBefore, 30, 'Time started at 30');
+assertEqual(timeAfter, 60, 'Time increased to 60 (+30 bonus)');
+assertEqual(result.gotBonus, true, 'Bonus flag also set');
+
+section('Game State - Overshoot Keeps Same Board');
+// Verify board does NOT change on overshoot (rewards memory)
+// Use scoringBoard where [0,1,2] = CAT = 6 points
+// Set totalScore to 108, so CAT makes 114 (overshoot)
+game.setState({ board: scoringBoard, totalScore: 108, foundWords: [], gameState: 'playing', boardsSolved: 1 });
+const boardBeforeOvershoot = JSON.stringify(game.getState().board);
+result = game.submitWord([0,1,2]); // CAT = 6 -> 114 = overshoot
+assertEqual(result.result, 'overshoot', 'Overshoot triggered');
+const boardAfterOvershoot = JSON.stringify(game.getState().board);
+assertEqual(boardBeforeOvershoot, boardAfterOvershoot, 'Board unchanged after overshoot');
+
 // =============================================================================
 // SUMMARY
 // =============================================================================

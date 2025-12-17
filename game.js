@@ -806,10 +806,10 @@ if (typeof module !== 'undefined' && module.exports) {
         board = generateBoard();
         return { result: 'trap', word, wordScore, newTotal, boardsSolved };
       } else if (newTotal > TARGET_SCORE) {
-        // Overshoot - new board, no credit
+        // Overshoot - same board, reset score (rewards memory)
         totalScore = 0;
         foundWords.clear();
-        board = generateBoard();
+        // Keep same board - player can retry with knowledge of available words
         return { result: 'overshoot', word, wordScore, newTotal, boardsSolved };
       } else {
         totalScore = newTotal;
