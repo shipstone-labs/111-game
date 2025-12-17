@@ -444,7 +444,6 @@ function getCoords(e) {
 }
 
 function handleStart(e) {
-  console.log('handleStart called, gameState:', gameState);
   if (gameState !== 'playing') return;
   e.preventDefault();
   
@@ -508,14 +507,12 @@ function handleEnd(e) {
       
       if (newTotal === TARGET_SCORE) {
         // Solved! Increment counter and generate new board
-        console.log('Hit 111! gameState before:', gameState);
         boardsSolved++;
         foundWords.clear();
         totalScore = 0;
         board = generateBoard();
         updateScore();
         draw(); // Immediately render new board
-        console.log('After board reset, gameState:', gameState);
         
         // Check for time bonus at threshold
         if (boardsSolved === BONUS_THRESHOLD) {
