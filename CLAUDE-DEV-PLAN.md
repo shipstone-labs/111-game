@@ -15,32 +15,40 @@ DO NOT read the entire codebase. Read only what STATUS says.
 ## STATUS (UPDATE AFTER EVERY COMMIT)
 
 ### Current Phase
-B-1: Write test for bonus time mutation
+COMPLETE — Ready to merge
 
 ### Branch
 fix/pm-feedback-dec17
 
 ### Last Checkpoint
-2025-12-17 16:32 — A-1/A-2 complete (7a1d6ef), timeRemaining exposed in state
+2025-12-17 16:50 — All phases complete (070e6c9)
 
 ### Test Status
 ```
-node test.js → 87/87 PASSED
+node test.js → 93/93 PASSED
 ```
 
-### Files This Phase
-- test.js (add bonus time mutation test at end)
-
-### Next Action
-B-1: Write test verifying timeRemaining increases by BONUS_TIME at 3 boards
-
 ### Completed Steps
-- [x] Verify tests pass on main
-- [x] Create branch fix/pm-feedback-dec17
-- [x] Update CLAUDE-DEV-PLAN.md with micro-phases
 - [x] A-1: Add timeRemaining to getState()
 - [x] A-2: Add timeRemaining to setState()
-- [x] Fix submitWord to mutate timeRemaining on bonus
+- [x] A-2b: Fix submitWord to mutate timeRemaining on bonus
+- [x] B-1: Write test for bonus time mutation — PASSES (bug is DOM layer)
+- [x] C-1: Verify trap tests exist (gameState, board changes)
+- [x] C-2: Extract FEEDBACK_DURATION constant
+- [x] D-1: Write test for overshoot same board
+- [x] D-2: Fix overshoot to keep same board
+- [x] E-1: Final verification (93/93 tests pass)
+
+### Results Summary
+
+| Issue | Result | Notes |
+|-------|--------|-------|
+| #47 Bonus not triggering | Logic OK | DOM layer issue — manual test needed |
+| #48 Overshoot new board | FIXED | Board now persists after overshoot |
+| #49 Trap UX blocked | Testable | FEEDBACK_DURATION exported (1500ms) |
+
+### Next Action
+Merge to main, deploy, manual testing
 
 ### Blockers
 None
@@ -122,9 +130,9 @@ None
 
 | # | Issue | Testable? | Status |
 |---|-------|-----------|--------|
-| 47 | +30s bonus not triggering | ⚠️ Testing | Phase B will diagnose |
-| 48 | Overshoot generates new board | ✅ Yes | Phase D will fix |
-| 49 | 110 trap UX feels blocked | ⚠️ Partial | Phase C will verify logic |
+| 47 | +30s bonus not triggering | ✅ Logic OK | DOM layer — manual test |
+| 48 | Overshoot generates new board | ✅ Fixed | Board persists after overshoot |
+| 49 | 110 trap UX feels blocked | ⚠️ Partial | FEEDBACK_DURATION exported |
 
 ---
 
