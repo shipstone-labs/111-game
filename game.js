@@ -770,13 +770,14 @@ if (typeof module !== 'undefined' && module.exports) {
     // For test injection
     setDictionary: (dict) => { dictionary = dict; },
     // State access for integration tests
-    getState: () => ({ board, totalScore, boardsSolved, foundWords: [...foundWords], gameState }),
+    getState: () => ({ board, totalScore, boardsSolved, foundWords: [...foundWords], gameState, timeRemaining }),
     setState: (s) => { 
       if (s.board) board = s.board;
       if (s.totalScore !== undefined) totalScore = s.totalScore;
       if (s.boardsSolved !== undefined) boardsSolved = s.boardsSolved;
       if (s.foundWords) { foundWords.clear(); s.foundWords.forEach(w => foundWords.add(w)); }
       if (s.gameState) gameState = s.gameState;
+      if (s.timeRemaining !== undefined) timeRemaining = s.timeRemaining;
     },
     // Simulate word submission (for integration tests)
     submitWord: (path) => {
@@ -796,6 +797,7 @@ if (typeof module !== 'undefined' && module.exports) {
         foundWords.clear();
         board = generateBoard();
         const gotBonus = boardsSolved === BONUS_THRESHOLD;
+        if (gotBonus) timeRemaining += BONUS_TIME;
         return { result: 'solved', word, wordScore, boardsSolved, gotBonus };
       } else if (newTotal === TRAP_SCORE) {
         // Trap - new board, no credit
