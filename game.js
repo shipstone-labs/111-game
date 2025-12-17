@@ -739,7 +739,7 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
     reg.addEventListener('updatefound', () => {
       const newWorker = reg.installing;
       newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'activated') {
+        if (newWorker.state === 'activated' && gameState !== 'playing') {
           window.location.reload();
         }
       });
