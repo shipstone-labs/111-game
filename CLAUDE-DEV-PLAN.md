@@ -12,38 +12,107 @@ DO NOT read the entire codebase. Read only what STATUS says.
 
 ---
 
-## STATUS (UPDATE DURING WORK)
+## STATUS (UPDATE AFTER EVERY COMMIT)
 
 ### Current Phase
-PM Feedback Fixes — IN PROGRESS
+A-1: Expose timeRemaining in getState()
+
+### Branch
+fix/pm-feedback-dec17
 
 ### Last Checkpoint
-2025-12-17 — v1.2 deployed, PM feedback received
-
-### Deployed URL
-https://ruzzle-pwa.pages.dev
-
-### Known State
-- Timer: 60 seconds, working
-- Multi-board scoring: working
-- +30s bonus at 3 boards: code exists, PM reports not triggering
-- 110 trap: generates new board (correct)
-- Overshoot: generates new board (incorrect — should keep same board)
+2025-12-17 16:25 — Branch created, tests pass (87/87)
 
 ### Test Status
 ```
-node test.js
-✓ ALL TESTS PASSED (87/87)
+node test.js → 87/87 PASSED
 ```
 
+### Files This Phase
+- game.js (lines 580-620: getState/setState functions)
+- test.js (add new tests at end)
+
 ### Next Action
-Review and fix PM feedback issues (see ISSUES section)
+A-1: Add timeRemaining to getState() return object
+
+### Completed Steps
+- [x] Verify tests pass on main
+- [x] Create branch fix/pm-feedback-dec17
+- [x] Update CLAUDE-DEV-PLAN.md with micro-phases
 
 ### Blockers
 None
 
-### Branch
-main (create feature branch before fixes)
+---
+
+## MICRO-PHASES (fix/pm-feedback-dec17)
+
+### Phase A: Expose State for Testing
+
+**A-1: Add timeRemaining to getState()**
+- Edit game.js getState() to include timeRemaining
+- Run tests — must still pass
+- Commit: "refactor: expose timeRemaining in getState"
+
+**A-2: Add timeRemaining to setState()**
+- Edit game.js setState() to accept timeRemaining
+- Run tests — must still pass  
+- Commit: "refactor: accept timeRemaining in setState"
+
+### Phase B: Test Issue 47 (Bonus Time Mutation)
+
+**B-1: Write test for bonus time mutation**
+- Add test: set timeRemaining=30, boardsSolved=2, solve board
+- Assert: timeRemaining increased to 60 (not just gotBonus flag)
+- Run tests — expect NEW test to pass or fail (tells us where bug is)
+- Commit: "test: verify bonus time actually mutates state"
+
+**B-2: Diagnose result**
+- If B-1 passes: bug is in DOM layer (mark TBD for manual test)
+- If B-1 fails: bug is in game logic, proceed to B-3
+
+**B-3: Fix bonus time mutation (if needed)**
+- Fix the code so timeRemaining actually increases
+- Run tests — all must pass
+- Commit: "fix: bonus time mutation (#47)"
+
+### Phase C: Test Issue 49 (Trap Doesn't Block)
+
+**C-1: Verify gameState after trap**
+- Existing test checks gameState === 'playing' after trap
+- Add test: verify board actually changed (new board generated)
+- Run tests
+- Commit: "test: verify trap generates new board and continues"
+
+**C-2: Export feedback duration constant**
+- Add FEEDBACK_DURATION_TRAP to exports (or create if missing)
+- Add test asserting expected value (e.g., 800ms)
+- Run tests
+- Commit: "refactor: export feedback duration for testability"
+
+### Phase D: Fix Issue 48 (Overshoot Same Board)
+
+**D-1: Write failing test for overshoot board persistence**
+- Add test: save board state, trigger overshoot, assert board UNCHANGED
+- Run tests — expect THIS test to FAIL (proving the bug)
+- Commit: "test: overshoot should keep same board (fails)"
+
+**D-2: Fix overshoot to keep same board**
+- Remove `board = generateBoard()` from overshoot branch
+- Run tests — new test should pass, others still pass
+- Commit: "fix: overshoot keeps same board (#48)"
+
+### Phase E: Final Verification
+
+**E-1: Run full test suite**
+- Run `node test.js`
+- All tests must pass
+- Document final test count
+
+**E-2: Update STATUS and merge**
+- Update CLAUDE-DEV-PLAN.md STATUS to complete
+- Merge to main
+- Verify Cloudflare deploy
 
 ---
 
@@ -51,30 +120,9 @@ main (create feature branch before fixes)
 
 | # | Issue | Testable? | Status |
 |---|-------|-----------|--------|
-| 47 | +30s bonus not triggering at 3 boards | ⚠️ Partial | TBD — logic passes test, display untestable |
-| 48 | Overshoot generates new board (should keep same) | ✅ Yes | TODO |
-| 49 | 110 trap UX feels blocked | ❌ No | TBD — CSS/animation only |
-
-### Issue 47: Bonus Not Triggering
-**Symptom:** PM solved 3+ boards repeatedly, never saw +30s bonus
-**Code:** `if (boardsSolved === BONUS_THRESHOLD)` fires once at exactly 3
-**Test:** Existing test passes (`gotBonus: true` at boardsSolved=3)
-**Unknown:** Is bonus supposed to repeat at 6, 9, 12...?
-**Testable:** Logic only. Timer display update is DOM (untestable).
-**Action:** Clarify requirement, then decide.
-
-### Issue 48: Overshoot Keeps Same Board
-**Symptom:** Overshoot generates new board, player loses knowledge
-**Expected:** Reset score/words but keep same board (rewards memory)
-**Code change:** Remove `board = generateBoard()` from overshoot branch
-**Testable:** ✅ Yes — can verify board unchanged after overshoot
-**Action:** Write test first, then fix.
-
-### Issue 49: 110 Trap UX
-**Symptom:** Trap message feels like game is blocked, user reaches for Reset
-**Cause:** Red shake animation signals "error/stop" even though new board is ready
-**Testable:** ❌ No — CSS animation timing, visual perception
-**Action:** TBD for manual testing. Possible fix: shorter feedback duration, different color.
+| 47 | +30s bonus not triggering | ⚠️ Testing | Phase B will diagnose |
+| 48 | Overshoot generates new board | ✅ Yes | Phase D will fix |
+| 49 | 110 trap UX feels blocked | ⚠️ Partial | Phase C will verify logic |
 
 ---
 
@@ -84,34 +132,16 @@ main (create feature branch before fixes)
 ```bash
 node test.js
 ```
-- Game logic via exported functions
-- State transitions (valid, invalid, trap, overshoot, solved)
-- Scoring calculations
-- Board generation constraints
-- Dictionary validation
 
 ### What I Cannot Test (Manual Only)
-- DOM rendering
-- CSS animations and colors
-- Timer display updates
-- Touch/mouse input handling
-- Visual feedback timing
-- Service worker behavior
+- DOM rendering, CSS animations, timer display updates
 
 ### Test-First Rule
-**Never claim a fix works without a passing test.**
-
-For testable issues:
 1. Write failing test that captures the bug
 2. Run `node test.js` — confirm test fails
 3. Implement fix
 4. Run `node test.js` — confirm test passes
 5. Commit with test + fix together
-
-For untestable issues:
-1. Mark as TBD
-2. Document expected behavior
-3. User tests manually after deploy
 
 ---
 
@@ -121,7 +151,6 @@ Per micro-phase:
 - File reads: 3 max
 - File writes: 2 max
 - Tool calls: 8 max
-- Code in response: 50 lines max (rest to file)
 
 **Danger signals:**
 - Reading same file twice → losing context
@@ -133,69 +162,15 @@ Per micro-phase:
 ## FILE STRUCTURE
 
 ```
-├── index.html      # Entry point
-├── styles.css      # UI styling (untestable)
 ├── game.js         # Game logic + exports for testing
-├── test.js         # Node.js test suite (87 tests)
-├── words.txt.gz    # Dictionary (83K words)
-├── sw.js           # Service worker
-├── manifest.json   # PWA manifest
-├── DESIGN.md       # Game design spec
-├── README.md       # User docs
-└── CLAUDE-DEV-PLAN.md  # This file
-```
-
-### Key Exports (game.js)
-
-For testing, game.js exports:
-```javascript
-module.exports = {
-  // Constants
-  TARGET_SCORE, TRAP_SCORE, GRID_SIZE, LETTER_VALUES,
-  BONUS_THRESHOLD, BONUS_TIME,
-  
-  // Functions
-  getLengthBonus, getNeighbors, areAdjacent,
-  selectLetters, generateBoard, hasAdjacentVowel,
-  calculateWordScore, isValidWord, setDictionary,
-  
-  // State management
-  setState, getState, submitWord
-};
+├── test.js         # Node.js test suite
+├── CLAUDE-DEV-PLAN.md  # This file (STATUS here)
+└── [other files not needed for this phase]
 ```
 
 ---
 
-## WORKFLOW
-
-### Before Starting Any Fix
-```bash
-cd /Users/creed/projects/ruzzle-pwa
-git checkout main
-git pull
-node test.js  # Must pass
-git checkout -b fix/issue-XX-description
-```
-
-### After Each Fix
-```bash
-node test.js  # Must pass
-git add -A
-git commit -m "fix: description (#XX)"
-git push origin fix/issue-XX-description
-```
-
-### Merging
-```bash
-git checkout main
-git merge fix/issue-XX-description
-git push origin main
-# Cloudflare Pages auto-deploys
-```
-
----
-
-## COMPLETED PHASES
+## COMPLETED VERSIONS
 
 | Version | Features | Date |
 |---------|----------|------|
