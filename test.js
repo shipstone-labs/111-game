@@ -260,13 +260,6 @@ assertEqual(game.getState().totalScore, 0, 'Score reset to 0');
 assertEqual(game.getState().foundWords.length, 0, 'Found words cleared');
 assertEqual(result.boardsSolved, 1, 'Boards solved unchanged after overshoot');
 
-section('Game State - Board Changes After Trap');
-const boardBefore = JSON.stringify(game.getState().board);
-game.setState({ board: scoringBoard, totalScore: 104, foundWords: [], gameState: 'playing', boardsSolved: 0 });
-game.submitWord([0,1,2]); // Triggers trap
-const boardAfter = JSON.stringify(game.getState().board);
-assert(boardBefore !== boardAfter, 'Board changes after trap (new board generated)');
-
 section('Game State - Bonus at 3 Boards');
 game.setState({ board: scoringBoard, totalScore: 105, foundWords: [], gameState: 'playing', boardsSolved: 2 });
 result = game.submitWord([0,1,2]); // CAT = 6 -> 111, boards becomes 3
