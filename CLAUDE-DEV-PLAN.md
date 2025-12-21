@@ -1,4 +1,4 @@
-# CLAUDE DEV PLAN — 111 (ruzzle-pwa)
+# CLAUDE DEV PLAN — 111 Same Board Feature
 
 ## RECOVERY START HERE
 
@@ -15,143 +15,163 @@ DO NOT read the entire codebase. Read only what STATUS says.
 ## STATUS (UPDATE AFTER EVERY COMMIT)
 
 ### Current Phase
-COMPLETE — Ready to merge
+E-3: Merge and deploy
 
 ### Branch
-fix/pm-feedback-dec17
+feature/same-board-session
 
 ### Last Checkpoint
-2025-12-17 16:50 — All phases complete (070e6c9)
+2025-12-21 — D-1 complete (8eb0712)
 
 ### Test Status
 ```
-node test.js → 93/93 PASSED
+node test.js → 96/96 PASSED
 ```
 
-### Completed Steps
-- [x] A-1: Add timeRemaining to getState()
-- [x] A-2: Add timeRemaining to setState()
-- [x] A-2b: Fix submitWord to mutate timeRemaining on bonus
-- [x] B-1: Write test for bonus time mutation — PASSES (bug is DOM layer)
-- [x] C-1: Verify trap tests exist (gameState, board changes)
-- [x] C-2: Extract FEEDBACK_DURATION constant
-- [x] D-1: Write test for overshoot same board
-- [x] D-2: Fix overshoot to keep same board
-- [x] E-1: Final verification (93/93 tests pass)
-
-### Results Summary
-
-| Issue | Result | Notes |
-|-------|--------|-------|
-| #47 Bonus not triggering | Logic OK | DOM layer issue — manual test needed |
-| #48 Overshoot new board | FIXED | Board now persists after overshoot |
-| #49 Trap UX blocked | Testable | FEEDBACK_DURATION exported (1500ms) |
+### Files This Phase
+- (merge only, no file changes)
 
 ### Next Action
-Merge to main, deploy, manual testing
+Merge to main and deploy
+
+### Completed Steps
+- [x] Understand codebase architecture
+- [x] Identify duplicated logic issue
+- [x] Create dev plan
+- [x] A-1: Write failing test for same-board-on-solve
+- [x] A-2: Fix interactive path (solve)
+- [x] A-3: Fix test export path (solve)
+- [x] B-1: Write failing test for same-board-on-trap
+- [x] B-2: Fix interactive path (trap)
+- [x] B-3: Fix test export path (trap)
+- [x] C-1: Fix interactive path (overshoot)
+- [x] D-1: Update DESIGN.md
+- [ ] E-1: Final verification
+- [ ] E-2: Manual verification
+- [ ] E-3: Merge and deploy
 
 ### Blockers
 None
 
 ---
 
-## MICRO-PHASES (fix/pm-feedback-dec17)
+## FEATURE SUMMARY
 
-### Phase A: Expose State for Testing
+**Request:** Chris Reed (Dec 20, 2025)
+Keep the same board for the entire game session. When player solves (hits 111), 
+traps (hits 110), or overshoots (>111), the board letters remain the same. 
+Only selections clear. New board only when starting a fresh game.
 
-**A-1: Add timeRemaining to getState()**
-- Edit game.js getState() to include timeRemaining
-- Run tests — must still pass
-- Commit: "refactor: expose timeRemaining in getState"
+**Rationale:**
+- Reduces cognitive load of constantly adapting to new letter arrangements
+- Allows player to build familiarity and find "math-word shortcuts"
+- Shifts challenge from "rapid pattern recognition" to "route optimization"
 
-**A-2: Add timeRemaining to setState()**
-- Edit game.js setState() to accept timeRemaining
-- Run tests — must still pass  
-- Commit: "refactor: accept timeRemaining in setState"
+---
 
-### Phase B: Test Issue 47 (Bonus Time Mutation)
+## ARCHITECTURE ISSUE
 
-**B-1: Write test for bonus time mutation**
-- Add test: set timeRemaining=30, boardsSolved=2, solve board
-- Assert: timeRemaining increased to 60 (not just gotBonus flag)
-- Run tests — expect NEW test to pass or fail (tells us where bug is)
-- Commit: "test: verify bonus time actually mutates state"
+The codebase has DUPLICATED LOGIC in two places:
 
-**B-2: Diagnose result**
-- If B-1 passes: bug is in DOM layer (mark TBD for manual test)
-- If B-1 fails: bug is in game logic, proceed to B-3
+1. **Interactive path** (lines 505-550): Browser gameplay
+2. **Test export path** (lines 795-820): module.exports for test.js
 
-**B-3: Fix bonus time mutation (if needed)**
-- Fix the code so timeRemaining actually increases
-- Run tests — all must pass
-- Commit: "fix: bonus time mutation (#47)"
+Both must be updated for any behavior change. The Dec 17 overshoot fix was only 
+applied to test export, leaving interactive path broken.
 
-### Phase C: Test Issue 49 (Trap Doesn't Block)
+---
 
-**C-1: Verify gameState after trap**
-- Existing test checks gameState === 'playing' after trap
-- Add test: verify board actually changed (new board generated)
+## MICRO-PHASES
+
+### Phase A: Same Board on Solve (111)
+
+**A-1: Write failing test for same-board-on-solve**
+- Add test: save board state, trigger solve (111), assert board UNCHANGED
+- Run tests — expect THIS test to FAIL
+- Commit: "test: solve should keep same board (fails)"
+
+**A-2: Fix interactive path (solve)**
+- Line ~514: Remove `board = generateBoard();` from solve branch
+- Keep: `foundWords.clear(); totalScore = 0;` (reset progress, not board)
+- Run tests — new test may still fail (test export not fixed yet)
+- Commit: "fix(interactive): solve keeps same board"
+
+**A-3: Fix test export path (solve)**
+- Line ~799: Remove `board = generateBoard();` from solve branch
+- Run tests — new test should now PASS
+- Commit: "fix(test-export): solve keeps same board"
+
+### Phase B: Same Board on Trap (110)
+
+**B-1: Write failing test for same-board-on-trap**
+- Add test: save board state, trigger trap (110), assert board UNCHANGED
+- Run tests — expect THIS test to FAIL
+- Commit: "test: trap should keep same board (fails)"
+
+**B-2: Fix interactive path (trap)**
+- Line ~530: Remove `board = generateBoard();` from trap branch
 - Run tests
-- Commit: "test: verify trap generates new board and continues"
+- Commit: "fix(interactive): trap keeps same board"
 
-**C-2: Export feedback duration constant**
-- Add FEEDBACK_DURATION_TRAP to exports (or create if missing)
-- Add test asserting expected value (e.g., 800ms)
+**B-3: Fix test export path (trap)**
+- Line ~807: Remove `board = generateBoard();` from trap branch
+- Run tests — new test should PASS
+- Commit: "fix(test-export): trap keeps same board"
+
+### Phase C: Fix Interactive Overshoot (Bug)
+
+**C-1: Fix interactive path overshoot**
+- Line ~538: Remove `board = generateBoard();` (bug from incomplete Dec 17 fix)
 - Run tests
-- Commit: "refactor: export feedback duration for testability"
+- Commit: "fix(interactive): overshoot keeps same board (complete Dec 17 fix)"
 
-### Phase D: Fix Issue 48 (Overshoot Same Board)
+### Phase D: Update Documentation
 
-**D-1: Write failing test for overshoot board persistence**
-- Add test: save board state, trigger overshoot, assert board UNCHANGED
-- Run tests — expect THIS test to FAIL (proving the bug)
-- Commit: "test: overshoot should keep same board (fails)"
-
-**D-2: Fix overshoot to keep same board**
-- Remove `board = generateBoard()` from overshoot branch
-- Run tests — new test should pass, others still pass
-- Commit: "fix: overshoot keeps same board (#48)"
+**D-1: Update DESIGN.md**
+- Revise Win/Loss Conditions table
+- Update v1.3 or v1.4 version notes
+- Commit: "docs: update DESIGN.md for same-board behavior"
 
 ### Phase E: Final Verification
 
 **E-1: Run full test suite**
-- Run `node test.js`
-- All tests must pass
-- Document final test count
+- `node test.js` — all tests must pass
+- Verify test count increased
 
-**E-2: Update STATUS and merge**
-- Update CLAUDE-DEV-PLAN.md STATUS to complete
+**E-2: Manual verification checklist**
+- [ ] Solve (111): board stays, score resets, counter increments
+- [ ] Trap (110): board stays, score resets, no counter increment
+- [ ] Overshoot: board stays, score resets, no counter increment
+- [ ] New Game button: generates fresh board
+- [ ] Bonus (+30s at 3 boards): still triggers correctly
+
+**E-3: Merge and deploy**
 - Merge to main
-- Verify Cloudflare deploy
-
----
-
-## ISSUES (PM FEEDBACK 2025-12-17)
-
-| # | Issue | Testable? | Status |
-|---|-------|-----------|--------|
-| 47 | +30s bonus not triggering | ✅ Logic OK | DOM layer — manual test |
-| 48 | Overshoot generates new board | ✅ Fixed | Board persists after overshoot |
-| 49 | 110 trap UX feels blocked | ⚠️ Partial | FEEDBACK_DURATION exported |
+- Verify Cloudflare Pages deployment
+- Commit: "chore: merge same-board feature"
 
 ---
 
 ## TESTING APPROACH
 
-### What I Can Test (Autonomous)
-```bash
-node test.js
+### New Tests Needed
+1. Solve keeps same board
+2. Trap keeps same board
+3. (Overshoot test already exists)
+
+### Test Pattern
+```javascript
+// Save board state
+game.setState({ board: testBoard, totalScore: X });
+const boardBefore = JSON.stringify(game.getState().board);
+
+// Trigger scenario
+game.submitWord([path-to-trigger-score]);
+
+// Assert board unchanged
+const boardAfter = JSON.stringify(game.getState().board);
+assertEqual(boardBefore, boardAfter, 'Board should be unchanged');
 ```
-
-### What I Cannot Test (Manual Only)
-- DOM rendering, CSS animations, timer display updates
-
-### Test-First Rule
-1. Write failing test that captures the bug
-2. Run `node test.js` — confirm test fails
-3. Implement fix
-4. Run `node test.js` — confirm test passes
-5. Commit with test + fix together
 
 ---
 
@@ -162,31 +182,25 @@ Per micro-phase:
 - File writes: 2 max
 - Tool calls: 8 max
 
-**Danger signals:**
-- Reading same file twice → losing context
-- 5+ tool calls in one response → pause and checkpoint
-- Debugging loop > 2 iterations → commit partial, document blocker
+Danger signals:
+- Reading same file twice → checkpoint now
+- 5+ tool calls in one response → pause
+- Debugging loop > 2 iterations → commit partial
 
 ---
 
-## FILE STRUCTURE
+## ROLLBACK PLAN
 
+If feature causes issues:
+```bash
+git revert HEAD~N  # Revert N commits
+git push origin main
 ```
-├── game.js         # Game logic + exports for testing
-├── test.js         # Node.js test suite
-├── CLAUDE-DEV-PLAN.md  # This file (STATUS here)
-└── [other files not needed for this phase]
+
+Or restore from last known good:
+```bash
+git checkout 1d300c1 -- game.js
 ```
-
----
-
-## COMPLETED VERSIONS
-
-| Version | Features | Date |
-|---------|----------|------|
-| v1.0 | Core game, local dictionary, 111 rules | 2025-12-14 |
-| v1.1 | 60-second timer | 2025-12-16 |
-| v1.2 | Multi-board scoring, +30s bonus | 2025-12-16 |
 
 ---
 

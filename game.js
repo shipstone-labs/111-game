@@ -507,13 +507,13 @@ function handleEnd(e) {
       const newTotal = totalScore + wordScore;
       
       if (newTotal === TARGET_SCORE) {
-        // Solved! Increment counter and generate new board
+        // Solved! Increment counter, keep same board (same-board-session)
         boardsSolved++;
         foundWords.clear();
         totalScore = 0;
-        board = generateBoard();
+        // Keep same board - player builds familiarity
         updateScore();
-        draw(); // Immediately render new board
+        draw(); // Redraw board (cleared selections)
         
         // Check for time bonus at threshold
         if (boardsSolved === BONUS_THRESHOLD) {
@@ -524,21 +524,21 @@ function handleEnd(e) {
           showFeedback(`${word} = 111! Board #${boardsSolved}`, 'solved');
         }
       } else if (newTotal === TRAP_SCORE) {
-        // 110 trap - reset board, no credit
+        // 110 trap - reset score, keep same board (same-board-session)
         totalScore = 0;
         foundWords.clear();
-        board = generateBoard();
+        // Keep same board - player can retry
         updateScore();
-        draw(); // Immediately render new board
-        showFeedback(`${word} = 110 trap! New board.`, 'trap');
+        draw(); // Redraw board (cleared selections)
+        showFeedback(`${word} = 110 trap!`, 'trap');
       } else if (newTotal > TARGET_SCORE) {
-        // Overshoot - reset board, no credit
+        // Overshoot - reset score, keep same board (same-board-session)
         totalScore = 0;
         foundWords.clear();
-        board = generateBoard();
+        // Keep same board - player can retry
         updateScore();
-        draw(); // Immediately render new board
-        showFeedback(`${word} = ${newTotal} overshoot! New board.`, 'overshoot');
+        draw(); // Redraw board (cleared selections)
+        showFeedback(`${word} = ${newTotal} overshoot!`, 'overshoot');
       } else {
         // Normal score
         totalScore = newTotal;
@@ -792,19 +792,19 @@ if (typeof module !== 'undefined' && module.exports) {
       const newTotal = totalScore + wordScore;
       
       if (newTotal === TARGET_SCORE) {
-        // Solved - increment boards, reset for next board
+        // Solved - increment boards, reset score (same board for session)
         boardsSolved++;
         totalScore = 0;
         foundWords.clear();
-        board = generateBoard();
+        // Keep same board - player builds familiarity with available words
         const gotBonus = boardsSolved === BONUS_THRESHOLD;
         if (gotBonus) timeRemaining += BONUS_TIME;
         return { result: 'solved', word, wordScore, boardsSolved, gotBonus };
       } else if (newTotal === TRAP_SCORE) {
-        // Trap - new board, no credit
+        // Trap - reset score, same board (same-board-session feature)
         totalScore = 0;
         foundWords.clear();
-        board = generateBoard();
+        // Keep same board - no credit but player can retry
         return { result: 'trap', word, wordScore, newTotal, boardsSolved };
       } else if (newTotal > TARGET_SCORE) {
         // Overshoot - same board, reset score (rewards memory)

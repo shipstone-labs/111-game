@@ -54,10 +54,13 @@
 
 | Condition | Result |
 |-----------|--------|
-| Score exactly 111 | Board solved! New board generated, boards counter +1 |
-| Score 110 | Trap! New board generated, no credit |
-| Score > 111 | Overshoot! New board generated, no credit |
+| Score exactly 111 | Board solved! Score resets, boards counter +1, same board |
+| Score 110 | Trap! Score resets, no credit, same board |
+| Score > 111 | Overshoot! Score resets, no credit, same board |
 | Timer reaches 0 | Game over, final score = boards solved |
+| New Game button | Fresh board generated |
+
+**Same Board Session (v1.4):** The board letters remain fixed for the entire game session. Solving, trapping, or overshooting clears your progress but keeps the same letter arrangement. This allows players to build familiarity with available words and discover optimal paths to 111. A new board is only generated when starting a fresh game.
 
 **Time Bonus:** Solving 3 boards adds +30 seconds to the timer.
 
@@ -140,10 +143,21 @@
 
 ## Version History
 
-### v1.2 (Current)
-- New scoring: solve multiple boards in 60 seconds
-- Reaching 111 generates new board, increments boards counter
-- 110 trap and overshoot generate new board (no credit)
+### v1.4 (Current)
+- Same-board session: board letters persist until New Game
+- Solve/trap/overshoot reset score but keep same board
+- Allows players to learn word patterns and optimize routes
+- Requested by Chris Reed based on Gemini Pro game design analysis
+
+### v1.3
+- Bug fix: overshoot now keeps same board (was generating new)
+- Exposed timeRemaining in state for testability
+- Extracted FEEDBACK_DURATION constant
+
+### v1.2
+- Multi-board scoring: solve multiple boards in 60 seconds
+- Reaching 111 increments boards counter
+- 110 trap and overshoot reset progress (no credit)
 - Final score = boards solved when timer expires
 - +30 second bonus when reaching 3 boards solved
 
