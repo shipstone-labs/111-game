@@ -295,6 +295,28 @@ assertEqual(result.result, 'overshoot', 'Overshoot triggered');
 const boardAfterOvershoot = JSON.stringify(game.getState().board);
 assertEqual(boardBeforeOvershoot, boardAfterOvershoot, 'Board unchanged after overshoot');
 
+section('Game State - Solve Keeps Same Board');
+// Verify board does NOT change on solve (same-board-session feature)
+// Use scoringBoard where [0,1,2] = CAT = 6 points
+// Set totalScore to 105, so CAT makes 111 (solve)
+game.setState({ board: scoringBoard, totalScore: 105, foundWords: [], gameState: 'playing', boardsSolved: 1 });
+const boardBeforeSolve = JSON.stringify(game.getState().board);
+result = game.submitWord([0,1,2]); // CAT = 6 -> 111 = solve
+assertEqual(result.result, 'solved', 'Solve triggered');
+const boardAfterSolve = JSON.stringify(game.getState().board);
+assertEqual(boardBeforeSolve, boardAfterSolve, 'Board unchanged after solve');
+
+section('Game State - Trap Keeps Same Board');
+// Verify board does NOT change on trap (same-board-session feature)
+// Use scoringBoard where [0,1,2] = CAT = 6 points
+// Set totalScore to 104, so CAT makes 110 (trap)
+game.setState({ board: scoringBoard, totalScore: 104, foundWords: [], gameState: 'playing', boardsSolved: 1 });
+const boardBeforeTrap = JSON.stringify(game.getState().board);
+result = game.submitWord([0,1,2]); // CAT = 6 -> 110 = trap
+assertEqual(result.result, 'trap', 'Trap triggered');
+const boardAfterTrap = JSON.stringify(game.getState().board);
+assertEqual(boardBeforeTrap, boardAfterTrap, 'Board unchanged after trap');
+
 // =============================================================================
 // SUMMARY
 // =============================================================================
