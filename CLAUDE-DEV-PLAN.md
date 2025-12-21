@@ -15,38 +15,40 @@ DO NOT read the entire codebase. Read only what STATUS says.
 ## STATUS (UPDATE AFTER EVERY COMMIT)
 
 ### Current Phase
-Not started — Plan created, awaiting Phase A
+E-3: Merge and deploy
 
 ### Branch
 feature/same-board-session
 
 ### Last Checkpoint
-2025-12-21 — Plan created (no commits yet)
+2025-12-21 — D-1 complete (8eb0712)
 
 ### Test Status
 ```
-node test.js → 93/93 PASSED (baseline)
+node test.js → 96/96 PASSED
 ```
 
 ### Files This Phase
-- game.js (lines 505-550 interactive path, lines 795-820 test export)
+- (merge only, no file changes)
 
 ### Next Action
-Create feature branch, then start Phase A-1
+Merge to main and deploy
 
 ### Completed Steps
 - [x] Understand codebase architecture
 - [x] Identify duplicated logic issue
 - [x] Create dev plan
-- [ ] A-1: Write failing test for same-board-on-solve
-- [ ] A-2: Fix interactive path (solve)
-- [ ] A-3: Fix test export path (solve)
-- [ ] B-1: Write failing test for same-board-on-trap
-- [ ] B-2: Fix interactive path (trap)
-- [ ] B-3: Fix test export path (trap)
-- [ ] C-1: Fix interactive path (overshoot) — currently broken
-- [ ] D-1: Update DESIGN.md
+- [x] A-1: Write failing test for same-board-on-solve
+- [x] A-2: Fix interactive path (solve)
+- [x] A-3: Fix test export path (solve)
+- [x] B-1: Write failing test for same-board-on-trap
+- [x] B-2: Fix interactive path (trap)
+- [x] B-3: Fix test export path (trap)
+- [x] C-1: Fix interactive path (overshoot)
+- [x] D-1: Update DESIGN.md
 - [ ] E-1: Final verification
+- [ ] E-2: Manual verification
+- [ ] E-3: Merge and deploy
 
 ### Blockers
 None
