@@ -15,13 +15,13 @@ DO NOT read the entire codebase. Read only what STATUS says.
 ## STATUS (UPDATE AFTER EVERY COMMIT)
 
 ### Current Phase
-E-3: Merge and deploy
+COMPLETE
 
 ### Branch
-feature/same-board-session
+main (merged)
 
 ### Last Checkpoint
-2025-12-21 — D-1 complete (8eb0712)
+2025-12-21 — Merged to main, deployed (e1d474a)
 
 ### Test Status
 ```
@@ -29,10 +29,10 @@ node test.js → 96/96 PASSED
 ```
 
 ### Files This Phase
-- (merge only, no file changes)
+- N/A (complete)
 
 ### Next Action
-Merge to main and deploy
+Manual verification in browser, then close dev plan
 
 ### Completed Steps
 - [x] Understand codebase architecture
@@ -46,9 +46,9 @@ Merge to main and deploy
 - [x] B-3: Fix test export path (trap)
 - [x] C-1: Fix interactive path (overshoot)
 - [x] D-1: Update DESIGN.md
-- [ ] E-1: Final verification
-- [ ] E-2: Manual verification
-- [ ] E-3: Merge and deploy
+- [x] E-1: Final verification
+- [ ] E-2: Manual verification (pending)
+- [x] E-3: Merge and deploy
 
 ### Blockers
 None
