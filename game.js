@@ -826,40 +826,7 @@ if (typeof module !== 'undefined' && module.exports) {
     // Simulate word submission (for integration tests)
     submitWord: (path) => {
       selectedPath = path;
-      const word = path.map(i => board[i].letter).join('');
-      
-      if (foundWords.has(word)) return { result: 'duplicate', word };
-      if (!isValidWord(word)) return { result: 'invalid', word };
-      
-      const wordScore = calculateWordScore(path, board);
-      const newTotal = totalScore + wordScore;
-      
-      if (newTotal === TARGET_SCORE) {
-        // Solved - increment boards, reset score (same board for session)
-        boardsSolved++;
-        totalScore = 0;
-        foundWords.clear();
-        // Keep same board - player builds familiarity with available words
-        const gotBonus = boardsSolved === BONUS_THRESHOLD;
-        if (gotBonus) timeRemaining += BONUS_TIME;
-        return { result: 'solved', word, wordScore, boardsSolved, gotBonus };
-      } else if (newTotal === TRAP_SCORE) {
-        // Trap - reset score, same board (same-board-session feature)
-        totalScore = 0;
-        foundWords.clear();
-        // Keep same board - no credit but player can retry
-        return { result: 'trap', word, wordScore, newTotal, boardsSolved };
-      } else if (newTotal > TARGET_SCORE) {
-        // Overshoot - same board, reset score (rewards memory)
-        totalScore = 0;
-        foundWords.clear();
-        // Keep same board - player can retry with knowledge of available words
-        return { result: 'overshoot', word, wordScore, newTotal, boardsSolved };
-      } else {
-        totalScore = newTotal;
-        foundWords.add(word);
-        return { result: 'valid', word, wordScore, totalScore };
-      }
+      return processWordSubmission(path);
     }
   };
 }
