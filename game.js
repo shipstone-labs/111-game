@@ -540,55 +540,39 @@ function handleEnd(e) {
   const word = selectedPath.map(i => board[i].letter).join('');
   
   if (word.length >= 2) {
-    if (foundWords.has(word)) {
-      showFeedback('Already used', 'duplicate');
-    } else if (!isValidWord(word)) {
-      showFeedback('Not a word', 'invalid');
-    } else {
-      // Valid word - calculate score
-      const wordScore = calculateWordScore(selectedPath, board);
-      const newTotal = totalScore + wordScore;
-      
-      if (newTotal === TARGET_SCORE) {
-        // Solved! Increment counter, keep same board (same-board-session)
-        boardsSolved++;
-        foundWords.clear();
-        totalScore = 0;
-        // Keep same board - player builds familiarity
+    const result = processWordSubmission(selectedPath);
+    
+    switch (result.result) {
+      case 'duplicate':
+        showFeedback('Already used', 'duplicate');
+        break;
+      case 'invalid':
+        showFeedback('Not a word', 'invalid');
+        break;
+      case 'solved':
         updateScore();
-        draw(); // Redraw board (cleared selections)
-        
-        // Check for time bonus at threshold
-        if (boardsSolved === BONUS_THRESHOLD) {
-          timeRemaining += BONUS_TIME;
+        draw();
+        if (result.gotBonus) {
           updateTimerDisplay();
-          showFeedback(`${word} = 111! Board #${boardsSolved} +${BONUS_TIME}s bonus!`, 'bonus');
+          showFeedback(`${word} = 111! Board #${result.boardsSolved} +${BONUS_TIME}s bonus!`, 'bonus');
         } else {
-          showFeedback(`${word} = 111! Board #${boardsSolved}`, 'solved');
+          showFeedback(`${word} = 111! Board #${result.boardsSolved}`, 'solved');
         }
-      } else if (newTotal === TRAP_SCORE) {
-        // 110 trap - reset score, keep same board (same-board-session)
-        totalScore = 0;
-        foundWords.clear();
-        // Keep same board - player can retry
+        break;
+      case 'trap':
         updateScore();
-        draw(); // Redraw board (cleared selections)
+        draw();
         showFeedback(`${word} = 110 trap!`, 'trap');
-      } else if (newTotal > TARGET_SCORE) {
-        // Overshoot - reset score, keep same board (same-board-session)
-        totalScore = 0;
-        foundWords.clear();
-        // Keep same board - player can retry
+        break;
+      case 'overshoot':
         updateScore();
-        draw(); // Redraw board (cleared selections)
-        showFeedback(`${word} = ${newTotal} overshoot!`, 'overshoot');
-      } else {
-        // Normal score
-        totalScore = newTotal;
-        foundWords.add(word);
+        draw();
+        showFeedback(`${word} = ${result.newTotal} overshoot!`, 'overshoot');
+        break;
+      case 'valid':
         updateScore();
-        showFeedback(`${word} +${wordScore}`, 'valid');
-      }
+        showFeedback(`${word} +${result.wordScore}`, 'valid');
+        break;
     }
   } else {
     // Word too short, hide the selecting display
