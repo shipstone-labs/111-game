@@ -219,6 +219,49 @@ function calculateWordScore(path, boardTiles) {
   return letterSum * wordMultiplier + getLengthBonus(path.length);
 }
 
+/**
+ * Process a word submission - core game logic.
+ * Shared by interactive path and test exports.
+ * Mutates: totalScore, boardsSolved, foundWords, timeRemaining
+ * Does NOT call UI functions.
+ * @param {number[]} path - Array of tile indices
+ * @returns {Object} Result object with result type and details
+ */
+function processWordSubmission(path) {
+  const word = path.map(i => board[i].letter).join('');
+  
+  if (foundWords.has(word)) return { result: 'duplicate', word };
+  if (!isValidWord(word)) return { result: 'invalid', word };
+  
+  const wordScore = calculateWordScore(path, board);
+  const newTotal = totalScore + wordScore;
+  
+  if (newTotal === TARGET_SCORE) {
+    // Solved - increment boards, reset score (same board for session)
+    boardsSolved++;
+    totalScore = 0;
+    foundWords.clear();
+    const gotBonus = boardsSolved === BONUS_THRESHOLD;
+    if (gotBonus) timeRemaining += BONUS_TIME;
+    return { result: 'solved', word, wordScore, boardsSolved, gotBonus };
+  } else if (newTotal === TRAP_SCORE) {
+    // Trap - reset score, same board
+    totalScore = 0;
+    foundWords.clear();
+    return { result: 'trap', word, wordScore, newTotal, boardsSolved };
+  } else if (newTotal > TARGET_SCORE) {
+    // Overshoot - reset score, same board
+    totalScore = 0;
+    foundWords.clear();
+    return { result: 'overshoot', word, wordScore, newTotal, boardsSolved };
+  } else {
+    // Normal valid word
+    totalScore = newTotal;
+    foundWords.add(word);
+    return { result: 'valid', word, wordScore, totalScore };
+  }
+}
+
 // =============================================================================
 // GEOMETRY
 // =============================================================================
