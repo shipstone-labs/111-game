@@ -143,7 +143,12 @@
 
 ## Version History
 
-### v1.4 (Current)
+### v1.4.1 (Current)
+- Internal refactor: unified game logic into processWordSubmission() function
+- Both interactive and test paths now share same code
+- No user-facing changes
+
+### v1.4
 - Same-board session: board letters persist until New Game
 - Solve/trap/overshoot reset score but keep same board
 - Allows players to learn word patterns and optimize routes
