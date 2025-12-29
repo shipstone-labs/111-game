@@ -277,6 +277,24 @@ assertEqual(timeBefore, 30, 'Time started at 30');
 assertEqual(timeAfter, 60, 'Time increased to 60 (+30 bonus)');
 assertEqual(result.gotBonus, true, 'Bonus flag also set');
 
+section('Game State - Bonus at 6 Boards (every 3)');
+// Bug: bonus only fires at exactly 3, not at 6, 9, 12...
+game.setState({ board: scoringBoard, totalScore: 105, foundWords: [], gameState: 'playing', boardsSolved: 5, timeRemaining: 20 });
+result = game.submitWord([0,1,2]); // CAT = 6 -> 111, boards becomes 6
+assertEqual(result.result, 'solved', 'Solved at 111');
+assertEqual(result.boardsSolved, 6, 'Boards solved is now 6');
+assertEqual(result.gotBonus, true, 'Got bonus at 6 boards (every 3)');
+assertEqual(game.getState().timeRemaining, 50, 'Time increased by 30 at 6 boards');
+
+section('Game State - No Bonus at 4 Boards');
+// Verify bonus does NOT fire at non-multiples of 3
+game.setState({ board: scoringBoard, totalScore: 105, foundWords: [], gameState: 'playing', boardsSolved: 3, timeRemaining: 40 });
+result = game.submitWord([0,1,2]); // CAT = 6 -> 111, boards becomes 4
+assertEqual(result.result, 'solved', 'Solved at 111');
+assertEqual(result.boardsSolved, 4, 'Boards solved is now 4');
+assertEqual(result.gotBonus, false, 'No bonus at 4 boards');
+assertEqual(game.getState().timeRemaining, 40, 'Time unchanged at 4 boards');
+
 section('Game State - Overshoot Keeps Same Board');
 // Verify board does NOT change on overshoot (rewards memory)
 // Use scoringBoard where [0,1,2] = CAT = 6 points

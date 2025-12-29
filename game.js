@@ -241,7 +241,7 @@ function processWordSubmission(path) {
     boardsSolved++;
     totalScore = 0;
     foundWords.clear();
-    const gotBonus = boardsSolved === BONUS_THRESHOLD;
+    const gotBonus = boardsSolved % BONUS_THRESHOLD === 0;
     if (gotBonus) timeRemaining += BONUS_TIME;
     return { result: 'solved', word, wordScore, boardsSolved, gotBonus };
   } else if (newTotal === TRAP_SCORE) {
