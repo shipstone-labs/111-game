@@ -31,27 +31,29 @@ body {
   padding: 0 8px;
 }
 
-.target {
-  color: #888;
-  font-size: 14px;
-  font-weight: 500;
+.boards {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 50px;
 }
 
-.target-value {
-  color: #4a9eda;
+.boards-icon {
+  width: 20px;
+  height: 20px;
+  background: #4CAF50;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
   font-weight: bold;
 }
 
-.scores {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.boards {
+.boards-value {
   color: #4CAF50;
-  font-size: 18px;
+  font-size: 22px;
   font-weight: bold;
 }
 
@@ -59,17 +61,39 @@ body {
   animation: pulse 0.5s ease-in-out;
 }
 
-.current-score {
-  color: #888;
-  font-size: 14px;
+.score {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 3px;
+  min-width: 110px;
+}
+
+.score-value {
+  color: #fff;
+  font-size: 36px;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-sep {
+  color: #444;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.score-target {
+  color: #666;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .timer {
   color: #4a9eda;
-  font-size: 24px;
+  font-size: 40px;
   font-weight: bold;
   font-variant-numeric: tabular-nums;
-  min-width: 50px;
+  min-width: 56px;
   text-align: center;
 }
 

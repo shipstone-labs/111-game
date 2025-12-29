@@ -66,7 +66,7 @@ const BONUS_TIME = 30;
 let dictionary = null;
 
 // DOM elements (initialized in init())
-let canvas, ctx, scoreDisplay, boardsDisplay, startBtn, targetDisplay, wordPill, wordText, timerDisplay;
+let canvas, ctx, scoreDisplay, boardsDisplay, startBtn, wordPill, wordText, timerDisplay;
 let feedbackTimeout = null;
 
 // =============================================================================
@@ -397,8 +397,8 @@ function draw() {
     ctx.fillText(tile.letter, x + (TILE_SIZE - faceInset) / 2, y + (TILE_SIZE - faceInset) / 2);
     
     // Point value
-    ctx.fillStyle = isSel ? '#7a5a20' : '#888';
-    ctx.font = 'bold 13px system-ui';
+    ctx.fillStyle = isSel ? '#7a5a20' : '#aaa';
+    ctx.font = 'bold 16px system-ui';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
     ctx.fillText(LETTER_VALUES[tile.letter], x + TILE_SIZE - faceInset - 6, y + 6);
@@ -633,9 +633,7 @@ function hideWordPill() {
 // =============================================================================
 
 function formatTime(seconds) {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, '0')}`;
+  return seconds.toString();
 }
 
 function updateTimerDisplay() {
@@ -718,7 +716,6 @@ async function init() {
   scoreDisplay = document.getElementById('scoreValue');
   boardsDisplay = document.getElementById('boardsValue');
   startBtn = document.getElementById('startBtn');
-  targetDisplay = document.getElementById('targetValue');
   wordPill = document.getElementById('wordPill');
   wordText = document.getElementById('wordText');
   timerDisplay = document.getElementById('timer');

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>111 Header Redesign Prototype</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+      padding: 20px;
+      gap: 40px;
+    }
+    
+    h2 {
+      color: #888;
+      margin-top: 20px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .version {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      border: 1px solid #333;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.2);
+    }
+    
+    .version-label {
+      color: #4a9eda;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    
+    .canvas-placeholder {
+      width: 336px;
+      height: 336px;
+      background: #1a1a2e;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      font-size: 14px;
+    }
+    
+    /* ========================================
+       OPTION A: Two-Row Header
+       Clean separation: stats on top, controls below
+       ======================================== */
+    
+    .header-option-a {
+      width: 336px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .header-a-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header-a-score {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    
+    .header-a-score-value {
+      color: #fff;
+      font-size: 28px;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .header-a-score-target {
+      color: #666;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    
+    .header-a-timer {
+      color: #4a9eda;
+      font-size: 32px;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .header-a-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header-a-boards {
+      color: #4CAF50;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .header-a-boards-value {
+      font-size: 20px;
+    }
+    
+    .header-a-btn {
+      padding: 8px 24px;
+      font-size: 15px;
+      font-weight: bold;
+      background: #4a9eda;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    
+    /* ========================================
+       OPTION B: Centered Score Focus
+       Score dominates center, timer/boards flanking
+       ======================================== */
+    
+    .header-option-b {
+      width: 336px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .header-b-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header-b-left {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+    
+    .header-b-boards {
+      color: #4CAF50;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .header-b-boards-value {
+      color: #4CAF50;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    
+    .header-b-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .header-b-score {
+      color: #fff;
+      font-size: 36px;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    
+    .header-b-target {
+      color: #666;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .header-b-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+    
+    .header-b-timer-label {
+      color: #666;
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+    
+    .header-b-timer {
+      color: #4a9eda;
+      font-size: 28px;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    
+    .header-b-btn-row {
+      display: flex;
+      justify-content: center;
+    }
+    
+    .header-b-btn {
+      padding: 6px 32px;
+      font-size: 14px;
+      font-weight: bold;
+      background: #4a9eda;
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+    }
+    
+    /* ========================================
+       OPTION C: Compact Single Row
+       Everything on one line, no labels
+       ======================================== */
+    
+    .header-option-c {
+      width: 336px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+    }
+    
+    .header-c-boards {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .header-c-boards-icon {
+      width: 20px;
+      height: 20px;
+      background: #4CAF50;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .header-c-boards-value {
+      color: #4CAF50;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    
+    .header-c-score {
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+    }
+    
+    .header-c-score-value {
+      color: #fff;
+      font-size: 32px;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .header-c-score-sep {
+      color: #444;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    
+    .header-c-score-target {
+      color: #4a9eda;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    
+    .header-c-timer {
+      color: #4a9eda;
+      font-size: 32px;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .header-c-btn {
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: bold;
+      background: #4a9eda;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    
+    /* Notes */
+    .notes {
+      color: #888;
+      font-size: 13px;
+      max-width: 336px;
+      text-align: center;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  
+  <h2>Option A: Two-Row Header</h2>
+  <div class="version">
+    <div class="version-label">Score + Timer top, Boards + Button bottom</div>
+    <div class="header-option-a">
+      <div class="header-a-top">
+        <div class="header-a-score">
+          <span class="header-a-score-value">87</span>
+          <span class="header-a-score-target">/111</span>
+        </div>
+        <div class="header-a-timer">0:42</div>
+      </div>
+      <div class="header-a-bottom">
+        <div class="header-a-boards">Boards: <span class="header-a-boards-value">2</span></div>
+        <button class="header-a-btn">Reset</button>
+      </div>
+    </div>
+    <div class="canvas-placeholder">[game board]</div>
+    <p class="notes">Clean hierarchy. Most important info (score, time) prominent on top. Secondary info below.</p>
+  </div>
+  
+  <h2>Option B: Centered Score Focus</h2>
+  <div class="version">
+    <div class="version-label">Score dominates center</div>
+    <div class="header-option-b">
+      <div class="header-b-main">
+        <div class="header-b-left">
+          <span class="header-b-boards">BOARDS</span>
+          <span class="header-b-boards-value">2</span>
+        </div>
+        <div class="header-b-center">
+          <span class="header-b-score">87</span>
+          <span class="header-b-target">of 111</span>
+        </div>
+        <div class="header-b-right">
+          <span class="header-b-timer-label">TIME</span>
+          <span class="header-b-timer">0:42</span>
+        </div>
+      </div>
+      <div class="header-b-btn-row">
+        <button class="header-b-btn">Reset</button>
+      </div>
+    </div>
+    <div class="canvas-placeholder">[game board]</div>
+    <p class="notes">Score as focal point. Symmetric layout. Labels add clarity but use vertical space.</p>
+  </div>
+  
+  <h2>Option C: Compact Single Row</h2>
+  <div class="version">
+    <div class="version-label">Everything inline, minimal labels</div>
+    <div class="header-option-c">
+      <div class="header-c-boards">
+        <span class="header-c-boards-icon">✓</span>
+        <span class="header-c-boards-value">2</span>
+      </div>
+      <div class="header-c-score">
+        <span class="header-c-score-value">87</span>
+        <span class="header-c-score-sep">/</span>
+        <span class="header-c-score-target">111</span>
+      </div>
+      <div class="header-c-timer">0:42</div>
+      <button class="header-c-btn">Reset</button>
+    </div>
+    <div class="canvas-placeholder">[game board]</div>
+    <p class="notes">Most compact. All info visible at a glance. Relies on layout convention (boards left, score center, time right).</p>
+  </div>
+  
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>111 Header - Option C Final</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+      padding: 20px;
+      gap: 30px;
+    }
+    
+    h2 {
+      color: #888;
+      margin-top: 20px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .version {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      border: 1px solid #333;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.2);
+    }
+    
+    .version-label {
+      color: #4a9eda;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    
+    .canvas-placeholder {
+      width: 336px;
+      height: 336px;
+      background: #1a1a2e;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      font-size: 14px;
+    }
+    
+    /* ========================================
+       FINAL HEADER - Fixed width zones
+       ======================================== */
+    
+    .header {
+      width: 336px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+    }
+    
+    /* Fixed-width left zone: boards */
+    .boards {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 50px;  /* fixed zone */
+    }
+    
+    .boards-icon {
+      width: 20px;
+      height: 20px;
+      background: #4CAF50;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .boards-value {
+      color: #4CAF50;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    
+    /* Fixed-width center zone: score */
+    .score {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 3px;
+      min-width: 110px;  /* fixed zone - fits "108/111" */
+    }
+    
+    .score-value {
+      color: #fff;
+      font-size: 36px;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .score-sep {
+      color: #444;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    
+    .score-target {
+      color: #666;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    /* Fixed-width timer zone */
+    .timer {
+      color: #4a9eda;
+      font-size: 40px;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+      min-width: 56px;  /* fixed zone - fits "78" */
+      text-align: center;
+    }
+    
+    .timer.warning {
+      color: #FF9800;
+    }
+    
+    .timer.critical {
+      color: #F44336;
+    }
+    
+    /* Fixed-width button zone */
+    .btn {
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      background: #4a9eda;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      min-width: 70px;  /* fixed zone */
+      text-align: center;
+    }
+    
+    .notes {
+      color: #888;
+      font-size: 13px;
+      max-width: 400px;
+      text-align: center;
+      line-height: 1.5;
+    }
+    
+    .spec {
+      color: #666;
+      font-size: 11px;
+      font-family: monospace;
+      margin-top: 8px;
+    }
+    
+    .warn {
+      color: #F44336;
+    }
+  </style>
+</head>
+<body>
+  
+  <h2>Worst Case: Max Values</h2>
+  <div class="version">
+    <div class="version-label">108/111 + 78s (after multiple bonuses)</div>
+    <div class="header">
+      <div class="boards">
+        <span class="boards-icon">✓</span>
+        <span class="boards-value">12</span>
+      </div>
+      <div class="score">
+        <span class="score-value">108</span>
+        <span class="score-sep">/</span>
+        <span class="score-target">111</span>
+      </div>
+      <div class="timer">78</div>
+      <button class="btn">Reset</button>
+    </div>
+    <div class="canvas-placeholder">[game board]</div>
+  </div>
+  
+  <h2>Typical Values</h2>
+  <div class="version">
+    <div class="version-label">Mid-game</div>
+    <div class="header">
+      <div class="boards">
+        <span class="boards-icon">✓</span>
+        <span class="boards-value">2</span>
+      </div>
+      <div class="score">
+        <span class="score-value">87</span>
+        <span class="score-sep">/</span>
+        <span class="score-target">111</span>
+      </div>
+      <div class="timer">42</div>
+      <button class="btn">Reset</button>
+    </div>
+  </div>
+  
+  <div class="version">
+    <div class="version-label">Game start</div>
+    <div class="header">
+      <div class="boards">
+        <span class="boards-icon">✓</span>
+        <span class="boards-value">0</span>
+      </div>
+      <div class="score">
+        <span class="score-value">0</span>
+        <span class="score-sep">/</span>
+        <span class="score-target">111</span>
+      </div>
+      <div class="timer">60</div>
+      <button class="btn">Play</button>
+    </div>
+  </div>
+  
+  <h2>Timer States</h2>
+  <div class="version">
+    <div class="version-label">Warning (≤20s)</div>
+    <div class="header">
+      <div class="boards">
+        <span class="boards-icon">✓</span>
+        <span class="boards-value">3</span>
+      </div>
+      <div class="score">
+        <span class="score-value">103</span>
+        <span class="score-sep">/</span>
+        <span class="score-target">111</span>
+      </div>
+      <div class="timer warning">15</div>
+      <button class="btn">Reset</button>
+    </div>
+  </div>
+  
+  <div class="version">
+    <div class="version-label">Critical (≤10s)</div>
+    <div class="header">
+      <div class="boards">
+        <span class="boards-icon">✓</span>
+        <span class="boards-value">5</span>
+      </div>
+      <div class="score">
+        <span class="score-value">108</span>
+        <span class="score-sep">/</span>
+        <span class="score-target">111</span>
+      </div>
+      <div class="timer critical">3</div>
+      <button class="btn">Reset</button>
+    </div>
+  </div>
+  
+  <div class="notes">
+    <p><strong>Fixed-width zones prevent overlap:</strong></p>
+    <p class="spec">
+      Boards: min-width 50px<br>
+      Score: min-width 110px (centered)<br>
+      Timer: min-width 56px (centered)<br>
+      Button: min-width 70px<br>
+      <br>
+      Total: 286px of 336px = 50px guaranteed gaps
+    </p>
+  </div>
+  
+</body>
+</html>
