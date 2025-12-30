@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a2e">
+  <title>111 - UX Prototype v2</title>
+  <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  padding: 16px;
+  touch-action: none;
+  user-select: none;
+}
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 360px;
+  width: 100%;
+}
+
+/* === HEADER: Stats spread across top, 33% bigger === */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.boards {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.boards-icon {
+  width: 26px;
+  height: 26px;
+  background: #4CAF50;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Was 22px, now ~29px (33% bigger) */
+.boards-value {
+  color: #4CAF50;
+  font-size: 29px;
+  font-weight: bold;
+}
+
+.score {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  flex: 1;
+}
+
+/* Was 36px, now 48px (33% bigger) */
+.score-value {
+  color: #fff;
+  font-size: 48px;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Was 20px, now ~27px */
+.score-sep {
+  color: #444;
+  font-size: 27px;
+  font-weight: bold;
+}
+
+/* Was 18px, now 24px */
+.score-target {
+  color: #666;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* Was 40px, now ~53px (33% bigger) */
+.timer {
+  color: #4a9eda;
+  font-size: 53px;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  flex: 1;
+}
+
+.timer.warning { color: #FF9800; }
+.timer.critical { color: #F44336; }
+
+/* === NEW GAME BUTTON: Centered over board === */
+.button-row {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+}
+
+.start-btn {
+  padding: 10px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  background: #4a9eda;
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  cursor: pointer;
+}
+
+/* === WORD FEEDBACK === */
+.word-area {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.word-pill {
+  padding: 8px 20px;
+  border-radius: 24px;
+  font-size: 18px;
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* === BOARD: Letter values 25% bigger === */
+canvas {
+  border-radius: 12px;
+  touch-action: none;
+}
+
+/* === COMPARISON SECTION === */
+.comparison {
+  margin-top: 40px;
+  padding: 20px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  color: #aaa;
+  font-size: 14px;
+  max-width: 360px;
+}
+
+.comparison h3 {
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.comparison table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.comparison td {
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.comparison .old { color: #F44336; }
+.comparison .new { color: #4CAF50; }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <!-- Stats row: spread across top, 33% bigger -->
+    <div class="header">
+      <div class="boards">
+        <span class="boards-icon">✓</span>
+        <span class="boards-value">3</span>
+      </div>
+      <div class="score">
+        <span class="score-value">87</span>
+        <span class="score-sep">/</span>
+        <span class="score-target">111</span>
+      </div>
+      <div class="timer">42</div>
+    </div>
+    
+    <!-- New Game button: centered over board -->
+    <div class="button-row">
+      <button class="start-btn">New Game</button>
+    </div>
+    
+    <!-- Word feedback area -->
+    <div class="word-area">
+      <div class="word-pill">CATS +7</div>
+    </div>
+    
+    <!-- Board canvas -->
+    <canvas id="board" width="356" height="356"></canvas>
+  </div>
+
+  <!-- Comparison notes for Chris -->
+  <div class="comparison">
+    <h3>Changes from Current Version</h3>
+    <table>
+      <tr>
+        <td>Boards solved</td>
+        <td class="old">22px</td>
+        <td class="new">29px (+33%)</td>
+      </tr>
+      <tr>
+        <td>Score</td>
+        <td class="old">36px</td>
+        <td class="new">48px (+33%)</td>
+      </tr>
+      <tr>
+        <td>Timer</td>
+        <td class="old">40px</td>
+        <td class="new">53px (+33%)</td>
+      </tr>
+      <tr>
+        <td>Letter values</td>
+        <td class="old">16px</td>
+        <td class="new">20px (+25%)</td>
+      </tr>
+      <tr>
+        <td>New Game button</td>
+        <td class="old">Top right</td>
+        <td class="new">Centered above board</td>
+      </tr>
+    </table>
+  </div>
+
+  <script>
+// Render a sample board with LARGER letter values (25% bigger: 16px -> 20px)
+const canvas = document.getElementById('board');
+const ctx = canvas.getContext('2d');
+
+const TILE_SIZE = 72;
+const TILE_GAP = 12;
+const BOARD_PADDING = 16;
+const BADGE_RADIUS = 14;
+
+const LETTER_VALUES = {
+  A:1, B:4, C:4, D:2, E:1, F:4, G:3, H:4,
+  I:1, J:8, K:5, L:2, M:3, N:1, O:1, P:4,
+  Q:10, R:1, S:1, T:1, U:2, V:5, W:4, X:8, Y:4, Z:10
+};
+
+const MULTIPLIER_COLORS = { DL:'#4CAF50', TL:'#2196F3', DW:'#FF9800', TW:'#F44336' };
+
+// Sample board
+const board = [
+  {letter:'C',multiplier:null}, {letter:'A',multiplier:'DL'}, {letter:'T',multiplier:null}, {letter:'S',multiplier:null},
+  {letter:'D',multiplier:null}, {letter:'O',multiplier:'TL'}, {letter:'G',multiplier:'DW'}, {letter:'E',multiplier:'TW'},
+  {letter:'R',multiplier:null}, {letter:'A',multiplier:null}, {letter:'T',multiplier:null}, {letter:'E',multiplier:'DL'},
+  {letter:'B',multiplier:'TL'}, {letter:'I',multiplier:null}, {letter:'N',multiplier:null}, {letter:'D',multiplier:null}
+];
+
+function lightenColor(hex, pct) {
+  const num = parseInt(hex.replace('#',''), 16);
+  const amt = Math.round(2.55 * pct);
+  const R = Math.min(255, (num >> 16) + amt);
+  const G = Math.min(255, ((num >> 8) & 0xFF) + amt);
+  const B = Math.min(255, (num & 0xFF) + amt);
+  return `rgb(${R},${G},${B})`;
+}
+
+function draw() {
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  const cornerRadius = 12;
+  const faceInset = 4;
+  
+  for (let i = 0; i < 16; i++) {
+    const tile = board[i];
+    const row = Math.floor(i / 4);
+    const col = i % 4;
+    const x = BOARD_PADDING + col * (TILE_SIZE + TILE_GAP);
+    const y = BOARD_PADDING + row * (TILE_SIZE + TILE_GAP);
+    
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.beginPath();
+    ctx.roundRect(x + 3, y + 4, TILE_SIZE, TILE_SIZE, cornerRadius);
+    ctx.fill();
+    
+    // Tile base
+    ctx.fillStyle = '#2a2a4a';
+    ctx.beginPath();
+    ctx.roundRect(x, y, TILE_SIZE, TILE_SIZE, cornerRadius);
+    ctx.fill();
+    
+    // Tile face
+    const tileGrad = ctx.createLinearGradient(x, y, x, y + TILE_SIZE - faceInset);
+    tileGrad.addColorStop(0, '#3a3a5a');
+    tileGrad.addColorStop(1, '#2a2a4a');
+    ctx.fillStyle = tileGrad;
+    ctx.beginPath();
+    ctx.roundRect(x, y, TILE_SIZE - faceInset, TILE_SIZE - faceInset, cornerRadius);
+    ctx.fill();
+    
+    // Multiplier border
+    if (tile.multiplier) {
+      ctx.strokeStyle = MULTIPLIER_COLORS[tile.multiplier];
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(x + 1.5, y + 1.5, TILE_SIZE - faceInset - 3, TILE_SIZE - faceInset - 3, cornerRadius - 2);
+      ctx.stroke();
+    }
+    
+    // Letter shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.font = 'bold 38px system-ui';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(tile.letter, x + (TILE_SIZE - faceInset) / 2 + 1, y + (TILE_SIZE - faceInset) / 2 + 2);
+    
+    // Letter
+    ctx.fillStyle = '#fff';
+    ctx.fillText(tile.letter, x + (TILE_SIZE - faceInset) / 2, y + (TILE_SIZE - faceInset) / 2);
+    
+    // Point value - NOW 20px (was 16px, +25%)
+    ctx.fillStyle = '#aaa';
+    ctx.font = 'bold 20px system-ui';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'top';
+    ctx.fillText(LETTER_VALUES[tile.letter], x + TILE_SIZE - faceInset - 6, y + 6);
+  }
+  
+  // Draw multiplier badges
+  for (let i = 0; i < 16; i++) {
+    const tile = board[i];
+    if (!tile.multiplier) continue;
+    
+    const row = Math.floor(i / 4);
+    const col = i % 4;
+    const x = BOARD_PADDING + col * (TILE_SIZE + TILE_GAP);
+    const y = BOARD_PADDING + row * (TILE_SIZE + TILE_GAP);
+    const bx = x - 2, by = y - 2;
+    
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.beginPath();
+    ctx.arc(bx + BADGE_RADIUS + 1, by + BADGE_RADIUS + 1, BADGE_RADIUS, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(bx + BADGE_RADIUS, by + BADGE_RADIUS, BADGE_RADIUS, 0, Math.PI * 2);
+    ctx.fill();
+    
+    const badgeGrad = ctx.createLinearGradient(bx, by, bx, by + BADGE_RADIUS * 2);
+    badgeGrad.addColorStop(0, lightenColor(MULTIPLIER_COLORS[tile.multiplier], 15));
+    badgeGrad.addColorStop(1, MULTIPLIER_COLORS[tile.multiplier]);
+    ctx.fillStyle = badgeGrad;
+    ctx.beginPath();
+    ctx.arc(bx + BADGE_RADIUS, by + BADGE_RADIUS, BADGE_RADIUS - 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px system-ui';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(tile.multiplier, bx + BADGE_RADIUS, by + BADGE_RADIUS);
+  }
+}
+
+draw();
+  </script>
+</body>
+</html>
