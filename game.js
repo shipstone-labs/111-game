@@ -220,6 +220,20 @@ function calculateWordScore(path, boardTiles) {
 }
 
 /**
+ * Validate that a path has no duplicate tiles.
+ * @param {number[]} path - Array of tile indices
+ * @returns {boolean} True if path is valid (no duplicates)
+ */
+function isValidPath(path) {
+  const seen = new Set();
+  for (const idx of path) {
+    if (seen.has(idx)) return false;
+    seen.add(idx);
+  }
+  return true;
+}
+
+/**
  * Process a word submission - core game logic.
  * Shared by interactive path and test exports.
  * Mutates: totalScore, boardsSolved, foundWords, timeRemaining
@@ -228,6 +242,9 @@ function calculateWordScore(path, boardTiles) {
  * @returns {Object} Result object with result type and details
  */
 function processWordSubmission(path) {
+  // Validate path has no duplicate tiles
+  if (!isValidPath(path)) return { result: 'invalid-path', path };
+  
   const word = path.map(i => board[i].letter).join('');
   
   if (foundWords.has(word)) return { result: 'duplicate', word };
@@ -674,8 +691,13 @@ function stopTimer() {
 
 function endGameTimeout() {
   gameState = 'timeout';
+  // Clear any in-progress selection
+  selectedPath = [];
+  isDragging = false;
+  currentPos = null;
   showFeedback(`Time's up! Boards: ${boardsSolved}`, 'timeout');
   startBtn.textContent = 'New Game';
+  draw(); // Redraw to clear selection visuals
 }
 
 function startGame() {
@@ -792,6 +814,8 @@ if (typeof module !== 'undefined' && module.exports) {
     getLengthBonus, calculateWordScore,
     // Dictionary
     isValidWord,
+    // Path validation
+    isValidPath,
     // For test injection
     setDictionary: (dict) => { dictionary = dict; },
     // State access for integration tests
@@ -804,6 +828,10 @@ if (typeof module !== 'undefined' && module.exports) {
       if (s.gameState) gameState = s.gameState;
       if (s.timeRemaining !== undefined) timeRemaining = s.timeRemaining;
     },
+    // Selection state for testing Bug #3 fix
+    getSelectionState: () => ({ selectedPath: [...selectedPath], isDragging, currentPos }),
+    setSelectionState: (path, dragging) => { selectedPath = path; isDragging = dragging; },
+    clearSelection: () => { selectedPath = []; isDragging = false; currentPos = null; },
     // Simulate word submission (for integration tests)
     submitWord: (path) => {
       selectedPath = path;

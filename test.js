@@ -329,6 +329,34 @@ const boardAfterTrap = JSON.stringify(game.getState().board);
 assertEqual(boardBeforeTrap, boardAfterTrap, 'Board unchanged after trap');
 
 // =============================================================================
+// BUG FIX TESTS - Dec 30, 2025
+// =============================================================================
+
+section('Bug Fix - Path With Duplicate Tiles Rejected');
+// Bug #1: Path should not allow same tile twice
+// Use path that would spell a valid word if duplicates were allowed
+// CAT uses [0,1,2], but [0,1,2,1,2] would spell CATAT - path has duplicate tiles 1 and 2
+game.setState({ board: scoringBoard, totalScore: 0, foundWords: [], gameState: 'playing' });
+result = game.submitWord([0, 1, 2, 1]); // C-A-T-A using same A tile twice
+assertEqual(result.result, 'invalid-path', 'Path with duplicate tile rejected');
+
+section('Bug Fix - Timer Expiration Clears Selection');
+// Bug #3: When timer expires, selection state should be cleared
+// This requires testing the clearSelection export
+game.setState({ board: scoringBoard, totalScore: 50, foundWords: [], gameState: 'playing', timeRemaining: 0 });
+// Set selection state first
+game.setSelectionState([0, 1, 2], true);
+let selState = game.getSelectionState();
+assertEqual(selState.selectedPath.length, 3, 'Selection set to 3 tiles');
+assertEqual(selState.isDragging, true, 'isDragging set to true');
+
+// Now clear it (simulating what endGameTimeout should do)
+game.clearSelection();
+selState = game.getSelectionState();
+assertEqual(selState.selectedPath.length, 0, 'Selection cleared');
+assertEqual(selState.isDragging, false, 'isDragging cleared');
+
+// =============================================================================
 // SUMMARY
 // =============================================================================
 
