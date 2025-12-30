@@ -250,31 +250,30 @@ function processWordSubmission(path) {
   if (foundWords.has(word)) return { result: 'duplicate', word };
   if (!isValidWord(word)) return { result: 'invalid', word };
   
+  // Word is valid - add to found words (persists entire game session)
+  foundWords.add(word);
+  
   const wordScore = calculateWordScore(path, board);
   const newTotal = totalScore + wordScore;
   
   if (newTotal === TARGET_SCORE) {
-    // Solved - increment boards, reset score (same board for session)
+    // Solved - increment boards, reset score (same board, words stay blocked)
     boardsSolved++;
     totalScore = 0;
-    foundWords.clear();
     const gotBonus = boardsSolved % BONUS_THRESHOLD === 0;
     if (gotBonus) timeRemaining += BONUS_TIME;
     return { result: 'solved', word, wordScore, boardsSolved, gotBonus };
   } else if (newTotal === TRAP_SCORE) {
-    // Trap - reset score, same board
+    // Trap - reset score (same board, words stay blocked)
     totalScore = 0;
-    foundWords.clear();
     return { result: 'trap', word, wordScore, newTotal, boardsSolved };
   } else if (newTotal > TARGET_SCORE) {
-    // Overshoot - reset score, same board
+    // Overshoot - reset score (same board, words stay blocked)
     totalScore = 0;
-    foundWords.clear();
     return { result: 'overshoot', word, wordScore, newTotal, boardsSolved };
   } else {
     // Normal valid word
     totalScore = newTotal;
-    foundWords.add(word);
     return { result: 'valid', word, wordScore, totalScore };
   }
 }

@@ -246,7 +246,7 @@ result = game.submitWord([0,1,2]); // CAT = 6 -> 110
 assertEqual(result.result, 'trap', '110 triggers trap');
 assertEqual(result.newTotal, 110, 'Would have been 110');
 assertEqual(game.getState().totalScore, 0, 'Score reset to 0');
-assertEqual(game.getState().foundWords.length, 0, 'Found words cleared');
+assertEqual(game.getState().foundWords.length, 1, 'Word added to found words (persists)');
 assertEqual(game.getState().gameState, 'playing', 'Still playing after trap');
 assertEqual(result.boardsSolved, 2, 'Boards solved unchanged after trap');
 
@@ -257,7 +257,7 @@ result = game.submitWord([0,1,2]); // CAT = 6 -> 114
 assertEqual(result.result, 'overshoot', 'Overshoot detected');
 assertEqual(result.newTotal, 114, 'Would have been 114');
 assertEqual(game.getState().totalScore, 0, 'Score reset to 0');
-assertEqual(game.getState().foundWords.length, 0, 'Found words cleared');
+assertEqual(game.getState().foundWords.length, 1, 'Word added to found words (persists)');
 assertEqual(result.boardsSolved, 1, 'Boards solved unchanged after overshoot');
 
 section('Game State - Bonus at 3 Boards');
@@ -355,6 +355,32 @@ game.clearSelection();
 selState = game.getSelectionState();
 assertEqual(selState.selectedPath.length, 0, 'Selection cleared');
 assertEqual(selState.isDragging, false, 'isDragging cleared');
+
+section('Bug Fix - Words Persist Across Resets');
+// Bug #2: Once a word is used, it cannot be reused even after solve/trap/overshoot
+// This prevents players from just repeating the same words over and over
+
+// Test 1: Word stays blocked after solving
+game.setState({ board: scoringBoard, totalScore: 105, foundWords: [], gameState: 'playing', boardsSolved: 0 });
+result = game.submitWord([0,1,2]); // CAT = 6 -> 111 = solve
+assertEqual(result.result, 'solved', 'First CAT solves board');
+// Now try CAT again - should be blocked even though we solved
+result = game.submitWord([0,1,2]);
+assertEqual(result.result, 'duplicate', 'CAT blocked after solve');
+
+// Test 2: Word stays blocked after trap
+game.setState({ board: scoringBoard, totalScore: 104, foundWords: [], gameState: 'playing', boardsSolved: 0 });
+result = game.submitWord([0,1,2]); // CAT = 6 -> 110 = trap
+assertEqual(result.result, 'trap', 'CAT triggers trap');
+result = game.submitWord([0,1,2]);
+assertEqual(result.result, 'duplicate', 'CAT blocked after trap');
+
+// Test 3: Word stays blocked after overshoot
+game.setState({ board: scoringBoard, totalScore: 108, foundWords: [], gameState: 'playing', boardsSolved: 0 });
+result = game.submitWord([0,1,2]); // CAT = 6 -> 114 = overshoot
+assertEqual(result.result, 'overshoot', 'CAT triggers overshoot');
+result = game.submitWord([0,1,2]);
+assertEqual(result.result, 'duplicate', 'CAT blocked after overshoot');
 
 // =============================================================================
 // SUMMARY
