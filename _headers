@@ -1,0 +1,14 @@
+# Cloudflare Pages headers
+# Prevent aggressive caching of service worker
+
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/index.html
+  Cache-Control: no-cache
+
+/*.js
+  Cache-Control: public, max-age=86400
+
+/*.css
+  Cache-Control: public, max-age=86400
