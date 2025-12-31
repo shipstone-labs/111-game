@@ -383,6 +383,236 @@ result = game.submitWord([0,1,2]);
 assertEqual(result.result, 'duplicate', 'CAT blocked after overshoot');
 
 // =============================================================================
+// BOARD VALIDATION TESTS - Dec 31, 2025
+// =============================================================================
+
+section('Board Validation - Letter Distribution');
+// validateLetterDistribution: max 4 of same letter, min 9 unique
+const badDistributionBoard = [
+  {letter:'E',multiplier:null,row:0,col:0},
+  {letter:'E',multiplier:null,row:0,col:1},
+  {letter:'E',multiplier:null,row:0,col:2},
+  {letter:'E',multiplier:null,row:0,col:3},
+  {letter:'E',multiplier:null,row:1,col:0}, // 5th E - too many
+  {letter:'S',multiplier:null,row:1,col:1},
+  {letter:'S',multiplier:null,row:1,col:2},
+  {letter:'S',multiplier:null,row:1,col:3},
+  {letter:'R',multiplier:null,row:2,col:0},
+  {letter:'R',multiplier:null,row:2,col:1},
+  {letter:'T',multiplier:null,row:2,col:2},
+  {letter:'T',multiplier:null,row:2,col:3},
+  {letter:'L',multiplier:null,row:3,col:0},
+  {letter:'A',multiplier:null,row:3,col:1},
+  {letter:'N',multiplier:null,row:3,col:2},
+  {letter:'I',multiplier:null,row:3,col:3}
+];
+assertEqual(game.validateLetterDistribution(badDistributionBoard), false, 'Rejects 5+ of same letter');
+
+const lowUniqueBoard = [
+  {letter:'A',multiplier:null,row:0,col:0},
+  {letter:'A',multiplier:null,row:0,col:1},
+  {letter:'A',multiplier:null,row:0,col:2},
+  {letter:'A',multiplier:null,row:0,col:3},
+  {letter:'B',multiplier:null,row:1,col:0},
+  {letter:'B',multiplier:null,row:1,col:1},
+  {letter:'B',multiplier:null,row:1,col:2},
+  {letter:'B',multiplier:null,row:1,col:3},
+  {letter:'C',multiplier:null,row:2,col:0},
+  {letter:'C',multiplier:null,row:2,col:1},
+  {letter:'D',multiplier:null,row:2,col:2},
+  {letter:'D',multiplier:null,row:2,col:3},
+  {letter:'E',multiplier:null,row:3,col:0},
+  {letter:'E',multiplier:null,row:3,col:1},
+  {letter:'F',multiplier:null,row:3,col:2},
+  {letter:'G',multiplier:null,row:3,col:3}  // Only 7 unique letters
+];
+assertEqual(game.validateLetterDistribution(lowUniqueBoard), false, 'Rejects <9 unique letters');
+
+const goodDistributionBoard = [
+  {letter:'A',multiplier:null,row:0,col:0},
+  {letter:'B',multiplier:null,row:0,col:1},
+  {letter:'C',multiplier:null,row:0,col:2},
+  {letter:'D',multiplier:null,row:0,col:3},
+  {letter:'E',multiplier:null,row:1,col:0},
+  {letter:'F',multiplier:null,row:1,col:1},
+  {letter:'G',multiplier:null,row:1,col:2},
+  {letter:'H',multiplier:null,row:1,col:3},
+  {letter:'I',multiplier:null,row:2,col:0},
+  {letter:'A',multiplier:null,row:2,col:1},
+  {letter:'B',multiplier:null,row:2,col:2},
+  {letter:'C',multiplier:null,row:2,col:3},
+  {letter:'D',multiplier:null,row:3,col:0},
+  {letter:'E',multiplier:null,row:3,col:1},
+  {letter:'F',multiplier:null,row:3,col:2},
+  {letter:'G',multiplier:null,row:3,col:3}  // 9 unique, max 2 of each
+];
+assertEqual(game.validateLetterDistribution(goodDistributionBoard), true, 'Accepts valid distribution');
+
+section('Board Validation - High Value Letter');
+const noHighValueBoard = [
+  {letter:'A',multiplier:null,row:0,col:0},
+  {letter:'E',multiplier:null,row:0,col:1},
+  {letter:'I',multiplier:null,row:0,col:2},
+  {letter:'O',multiplier:null,row:0,col:3},
+  {letter:'U',multiplier:null,row:1,col:0},
+  {letter:'N',multiplier:null,row:1,col:1},
+  {letter:'R',multiplier:null,row:1,col:2},
+  {letter:'S',multiplier:null,row:1,col:3},
+  {letter:'T',multiplier:null,row:2,col:0},
+  {letter:'L',multiplier:null,row:2,col:1},
+  {letter:'D',multiplier:null,row:2,col:2},
+  {letter:'A',multiplier:null,row:2,col:3},
+  {letter:'E',multiplier:null,row:3,col:0},
+  {letter:'I',multiplier:null,row:3,col:1},
+  {letter:'O',multiplier:null,row:3,col:2},
+  {letter:'N',multiplier:null,row:3,col:3}  // All letters worth 1-2 points
+];
+assertEqual(game.validateHighValueLetter(noHighValueBoard), false, 'Rejects no 4+ point letter');
+
+const hasHighValueBoard = [
+  {letter:'A',multiplier:null,row:0,col:0},
+  {letter:'E',multiplier:null,row:0,col:1},
+  {letter:'I',multiplier:null,row:0,col:2},
+  {letter:'Q',multiplier:null,row:0,col:3},  // Q = 10 points
+  {letter:'U',multiplier:null,row:1,col:0},
+  {letter:'N',multiplier:null,row:1,col:1},
+  {letter:'R',multiplier:null,row:1,col:2},
+  {letter:'S',multiplier:null,row:1,col:3},
+  {letter:'T',multiplier:null,row:2,col:0},
+  {letter:'L',multiplier:null,row:2,col:1},
+  {letter:'D',multiplier:null,row:2,col:2},
+  {letter:'A',multiplier:null,row:2,col:3},
+  {letter:'E',multiplier:null,row:3,col:0},
+  {letter:'I',multiplier:null,row:3,col:1},
+  {letter:'O',multiplier:null,row:3,col:2},
+  {letter:'N',multiplier:null,row:3,col:3}
+];
+assertEqual(game.validateHighValueLetter(hasHighValueBoard), true, 'Accepts board with Q');
+
+section('Board Validation - No Adjacent Triples');
+const horizontalTripleBoard = [
+  {letter:'R',multiplier:null,row:0,col:0},
+  {letter:'R',multiplier:null,row:0,col:1},
+  {letter:'R',multiplier:null,row:0,col:2},  // RRR horizontal
+  {letter:'A',multiplier:null,row:0,col:3},
+  {letter:'E',multiplier:null,row:1,col:0},
+  {letter:'I',multiplier:null,row:1,col:1},
+  {letter:'O',multiplier:null,row:1,col:2},
+  {letter:'U',multiplier:null,row:1,col:3},
+  {letter:'N',multiplier:null,row:2,col:0},
+  {letter:'S',multiplier:null,row:2,col:1},
+  {letter:'T',multiplier:null,row:2,col:2},
+  {letter:'L',multiplier:null,row:2,col:3},
+  {letter:'D',multiplier:null,row:3,col:0},
+  {letter:'C',multiplier:null,row:3,col:1},
+  {letter:'M',multiplier:null,row:3,col:2},
+  {letter:'P',multiplier:null,row:3,col:3}
+];
+assertEqual(game.validateNoAdjacentTriples(horizontalTripleBoard), false, 'Rejects horizontal triple');
+
+const verticalTripleBoard = [
+  {letter:'E',multiplier:null,row:0,col:0},
+  {letter:'A',multiplier:null,row:0,col:1},
+  {letter:'I',multiplier:null,row:0,col:2},
+  {letter:'O',multiplier:null,row:0,col:3},
+  {letter:'E',multiplier:null,row:1,col:0},  // EEE vertical in col 0
+  {letter:'N',multiplier:null,row:1,col:1},
+  {letter:'S',multiplier:null,row:1,col:2},
+  {letter:'T',multiplier:null,row:1,col:3},
+  {letter:'E',multiplier:null,row:2,col:0},
+  {letter:'L',multiplier:null,row:2,col:1},
+  {letter:'D',multiplier:null,row:2,col:2},
+  {letter:'R',multiplier:null,row:2,col:3},
+  {letter:'U',multiplier:null,row:3,col:0},
+  {letter:'C',multiplier:null,row:3,col:1},
+  {letter:'M',multiplier:null,row:3,col:2},
+  {letter:'P',multiplier:null,row:3,col:3}
+];
+assertEqual(game.validateNoAdjacentTriples(verticalTripleBoard), false, 'Rejects vertical triple');
+
+const diagonalTripleBoard = [
+  {letter:'S',multiplier:null,row:0,col:0},
+  {letter:'A',multiplier:null,row:0,col:1},
+  {letter:'I',multiplier:null,row:0,col:2},
+  {letter:'O',multiplier:null,row:0,col:3},
+  {letter:'E',multiplier:null,row:1,col:0},
+  {letter:'S',multiplier:null,row:1,col:1},  // SSS diagonal
+  {letter:'N',multiplier:null,row:1,col:2},
+  {letter:'T',multiplier:null,row:1,col:3},
+  {letter:'L',multiplier:null,row:2,col:0},
+  {letter:'D',multiplier:null,row:2,col:1},
+  {letter:'S',multiplier:null,row:2,col:2},
+  {letter:'R',multiplier:null,row:2,col:3},
+  {letter:'U',multiplier:null,row:3,col:0},
+  {letter:'C',multiplier:null,row:3,col:1},
+  {letter:'M',multiplier:null,row:3,col:2},
+  {letter:'P',multiplier:null,row:3,col:3}
+];
+assertEqual(game.validateNoAdjacentTriples(diagonalTripleBoard), false, 'Rejects diagonal triple');
+
+assertEqual(game.validateNoAdjacentTriples(scoringBoard), true, 'Accepts board without triples');
+
+section('Board Validation - Playable Letters (2-letter words)');
+// Initialize two-letter words set
+game.initTwoLetterWords();
+
+// Board where Q is surrounded by consonants only (no valid 2-letter pair)
+const isolatedQBoard = [
+  {letter:'Q',multiplier:null,row:0,col:0},
+  {letter:'X',multiplier:null,row:0,col:1},
+  {letter:'Z',multiplier:null,row:0,col:2},
+  {letter:'K',multiplier:null,row:0,col:3},
+  {letter:'J',multiplier:null,row:1,col:0},
+  {letter:'V',multiplier:null,row:1,col:1},
+  {letter:'W',multiplier:null,row:1,col:2},
+  {letter:'F',multiplier:null,row:1,col:3},
+  {letter:'P',multiplier:null,row:2,col:0},
+  {letter:'B',multiplier:null,row:2,col:1},
+  {letter:'C',multiplier:null,row:2,col:2},
+  {letter:'D',multiplier:null,row:2,col:3},
+  {letter:'G',multiplier:null,row:3,col:0},
+  {letter:'H',multiplier:null,row:3,col:1},
+  {letter:'L',multiplier:null,row:3,col:2},
+  {letter:'M',multiplier:null,row:3,col:3}
+];
+assertEqual(game.validatePlayableLetters(isolatedQBoard), false, 'Rejects isolated Q');
+
+// Board with common letters that all form 2-letter pairs
+// A-T, A-N, I-T, I-N, E-T, E-N, O-N, etc. are all valid
+const playableBoard = [
+  {letter:'A',multiplier:null,row:0,col:0},
+  {letter:'T',multiplier:null,row:0,col:1},
+  {letter:'E',multiplier:null,row:0,col:2},
+  {letter:'N',multiplier:null,row:0,col:3},
+  {letter:'I',multiplier:null,row:1,col:0},
+  {letter:'O',multiplier:null,row:1,col:1},
+  {letter:'S',multiplier:null,row:1,col:2},
+  {letter:'R',multiplier:null,row:1,col:3},
+  {letter:'N',multiplier:null,row:2,col:0},
+  {letter:'A',multiplier:null,row:2,col:1},
+  {letter:'E',multiplier:null,row:2,col:2},
+  {letter:'T',multiplier:null,row:2,col:3},
+  {letter:'O',multiplier:null,row:3,col:0},
+  {letter:'I',multiplier:null,row:3,col:1},
+  {letter:'S',multiplier:null,row:3,col:2},
+  {letter:'R',multiplier:null,row:3,col:3}
+];
+assertEqual(game.validatePlayableLetters(playableBoard), true, 'Accepts playable board');
+
+section('Board Validation - generateValidBoard');
+// Test that generateValidBoard produces valid boards
+let allValid = true;
+for (let i = 0; i < 100; i++) {
+  const board = game.generateValidBoard();
+  if (!game.validateBoard(board)) {
+    allValid = false;
+    console.log(`    (Board ${i} failed validation)`);
+    break;
+  }
+}
+assert(allValid, 'generateValidBoard produces valid boards (100 iterations)');
+
+// =============================================================================
 // SUMMARY
 // =============================================================================
 

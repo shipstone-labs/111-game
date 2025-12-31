@@ -82,6 +82,7 @@ async function loadDictionary() {
     const text = await new Response(decompressed).text();
     dictionary = new Set(text.trim().toUpperCase().split('\n'));
     console.log(`Dictionary loaded: ${dictionary.size} words`);
+    initTwoLetterWords(); // Initialize 2-letter words for board validation
     return true;
   } catch (err) {
     console.error('Failed to load dictionary:', err);
@@ -709,7 +710,7 @@ function startGame() {
   totalScore = 0;
   boardsSolved = 0;
   foundWords.clear();
-  board = generateBoard();
+  board = generateValidBoard();
   updateScore();
   startBtn.textContent = 'Reset';
   startTimer();
@@ -720,11 +721,173 @@ function resetGame() {
   totalScore = 0;
   boardsSolved = 0;
   foundWords.clear();
-  board = generateBoard();
+  board = generateValidBoard();
   gameState = 'playing';
   updateScore();
   startTimer();
   draw();
+}
+
+// =============================================================================
+// BOARD VALIDATION
+// =============================================================================
+
+/** @type {Set<string>|null} Two-letter words for playability validation */
+let twoLetterWords = null;
+/** @type {Set<string>|null} Three-letter words for playability validation */
+let threeLetterWords = null;
+
+/**
+ * Initialize the two and three-letter words sets from dictionary.
+ * Called once after dictionary loads.
+ */
+function initTwoLetterWords() {
+  if (!dictionary) return;
+  twoLetterWords = new Set([...dictionary].filter(w => w.length === 2));
+  threeLetterWords = new Set([...dictionary].filter(w => w.length === 3));
+  console.log(`Two-letter words: ${twoLetterWords.size}, Three-letter: ${threeLetterWords.size}`);
+}
+
+/**
+ * Validate letter distribution: max 4 of any letter, min 9 unique.
+ * @param {Object[]} tiles - Board tiles
+ * @returns {boolean} True if valid
+ */
+function validateLetterDistribution(tiles) {
+  const counts = {};
+  for (const tile of tiles) {
+    counts[tile.letter] = (counts[tile.letter] || 0) + 1;
+  }
+  const uniqueCount = Object.keys(counts).length;
+  const maxCount = Math.max(...Object.values(counts));
+  return uniqueCount >= 9 && maxCount <= 4;
+}
+
+/**
+ * Validate board has at least one high-value letter (4+ points).
+ * @param {Object[]} tiles - Board tiles
+ * @returns {boolean} True if valid
+ */
+function validateHighValueLetter(tiles) {
+  return tiles.some(t => LETTER_VALUES[t.letter] >= 4);
+}
+
+/**
+ * Validate no three identical letters in a row (horizontal, vertical, diagonal).
+ * @param {Object[]} tiles - Board tiles
+ * @returns {boolean} True if valid
+ */
+function validateNoAdjacentTriples(tiles) {
+  const grid = [];
+  for (let r = 0; r < 4; r++) {
+    grid[r] = tiles.slice(r * 4, r * 4 + 4).map(t => t.letter);
+  }
+  
+  // Check horizontal
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 2; c++) {
+      if (grid[r][c] === grid[r][c+1] && grid[r][c] === grid[r][c+2]) return false;
+    }
+  }
+  
+  // Check vertical
+  for (let c = 0; c < 4; c++) {
+    for (let r = 0; r < 2; r++) {
+      if (grid[r][c] === grid[r+1][c] && grid[r][c] === grid[r+2][c]) return false;
+    }
+  }
+  
+  // Check diagonals (down-right)
+  for (let r = 0; r < 2; r++) {
+    for (let c = 0; c < 2; c++) {
+      if (grid[r][c] === grid[r+1][c+1] && grid[r][c] === grid[r+2][c+2]) return false;
+    }
+  }
+  
+  // Check diagonals (down-left)
+  for (let r = 0; r < 2; r++) {
+    for (let c = 2; c < 4; c++) {
+      if (grid[r][c] === grid[r+1][c-1] && grid[r][c] === grid[r+2][c-2]) return false;
+    }
+  }
+  
+  return true;
+}
+
+/**
+ * Validate every tile can form at least one 2 or 3-letter word with neighbors.
+ * Uses 2-letter words first (fast), falls back to 3-letter for letters like C, V.
+ * @param {Object[]} tiles - Board tiles
+ * @returns {boolean} True if valid
+ */
+function validatePlayableLetters(tiles) {
+  if (!twoLetterWords || !threeLetterWords) return true; // Skip if not loaded
+  
+  for (let i = 0; i < tiles.length; i++) {
+    const letter = tiles[i].letter;
+    const neighbors = getNeighbors(i);
+    let hasValidWord = false;
+    
+    // Check 2-letter words first
+    for (const n of neighbors) {
+      const pair1 = letter + tiles[n].letter;
+      const pair2 = tiles[n].letter + letter;
+      if (twoLetterWords.has(pair1) || twoLetterWords.has(pair2)) {
+        hasValidWord = true;
+        break;
+      }
+    }
+    
+    // If no 2-letter word, check 3-letter words with neighbor pairs
+    if (!hasValidWord) {
+      for (const n1 of neighbors) {
+        for (const n2 of getNeighbors(n1)) {
+          if (n2 === i) continue; // Skip self
+          // Try all orderings: letter-n1-n2, n1-letter-n2, n1-n2-letter
+          const l = letter, a = tiles[n1].letter, b = tiles[n2].letter;
+          if (threeLetterWords.has(l + a + b) || 
+              threeLetterWords.has(a + l + b) || 
+              threeLetterWords.has(a + b + l) ||
+              threeLetterWords.has(b + a + l) ||
+              threeLetterWords.has(b + l + a) ||
+              threeLetterWords.has(l + b + a)) {
+            hasValidWord = true;
+            break;
+          }
+        }
+        if (hasValidWord) break;
+      }
+    }
+    
+    if (!hasValidWord) return false;
+  }
+  return true;
+}
+
+/**
+ * Run all board validations.
+ * @param {Object[]} tiles - Board tiles
+ * @returns {boolean} True if all validations pass
+ */
+function validateBoard(tiles) {
+  return validateLetterDistribution(tiles) &&
+         validateHighValueLetter(tiles) &&
+         validateNoAdjacentTriples(tiles) &&
+         validatePlayableLetters(tiles);
+}
+
+/**
+ * Generate a board that passes all validations.
+ * @param {number} maxAttempts - Maximum generation attempts
+ * @returns {Object[]} Valid board tiles
+ */
+function generateValidBoard(maxAttempts = 50) {
+  for (let i = 0; i < maxAttempts; i++) {
+    const tiles = generateBoard();
+    if (validateBoard(tiles)) return tiles;
+  }
+  console.warn('Failed to generate valid board after', maxAttempts, 'attempts');
+  return generateBoard(); // Fallback
 }
 
 // =============================================================================
@@ -807,6 +970,9 @@ if (typeof module !== 'undefined' && module.exports) {
     BONUS_THRESHOLD, BONUS_TIME, GAME_DURATION, FEEDBACK_DURATION,
     // Board generation
     selectLetters, generateBoard, getNeighbors, hasAdjacentVowel,
+    // Board validation
+    validateLetterDistribution, validateHighValueLetter, validateNoAdjacentTriples,
+    validatePlayableLetters, validateBoard, generateValidBoard, initTwoLetterWords,
     // Geometry
     areAdjacent, getTileCenter, getTileAt,
     // Scoring
