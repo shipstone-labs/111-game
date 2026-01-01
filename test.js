@@ -612,6 +612,39 @@ for (let i = 0; i < 100; i++) {
 }
 assert(allValid, 'generateValidBoard produces valid boards (100 iterations)');
 
+section('Board Validation - Playable Letters Bugfix (2026-01-01)');
+// Test the specific bug: 3-letter validation was checking all permutations
+// without verifying tiles could be traversed in that order
+
+// Create board where a letter can form a 3-letter word by permutation
+// but NOT by valid adjacent path
+const buggyPathBoard = [
+  {letter:'C',multiplier:null,row:0,col:0},  // C at position 0
+  {letter:'A',multiplier:null,row:0,col:1},  // A at position 1 (adjacent to C)
+  {letter:'X',multiplier:null,row:0,col:2},
+  {letter:'Z',multiplier:null,row:0,col:3},
+  {letter:'B',multiplier:null,row:1,col:1},  // B at position 5 (adjacent to A, NOT to C)
+  {letter:'Q',multiplier:null,row:1,col:0},
+  {letter:'J',multiplier:null,row:1,col:2},
+  {letter:'K',multiplier:null,row:1,col:3},
+  {letter:'V',multiplier:null,row:2,col:0},
+  {letter:'W',multiplier:null,row:2,col:1},
+  {letter:'F',multiplier:null,row:2,col:2},
+  {letter:'G',multiplier:null,row:2,col:3},
+  {letter:'H',multiplier:null,row:3,col:0},
+  {letter:'L',multiplier:null,row:3,col:1},
+  {letter:'M',multiplier:null,row:3,col:2},
+  {letter:'P',multiplier:null,row:3,col:3}
+];
+// C is at 0, neighbors are 1(A), 4(Q)
+// A is at 1, neighbors are 0(C), 2(X), 4(Q), 5(B), 6(J)
+// B is at 5, neighbors are 1(A), 2(X), 4(Q), 6(J), 9(W), 10(F)
+// CAB is a valid 3-letter word, but C and B are NOT adjacent
+// Old code: would check all permutations of C,A,B and find CAB is valid
+// New code: only checks C->A->B (not adjacent) and B->A->C (not adjacent)
+// Since C has no valid 2-letter pairs with Q or A (check TWL06), should fail
+assertEqual(game.validatePlayableLetters(buggyPathBoard), false, 'Rejects non-adjacent 3-letter path (CAB bug)');
+
 // =============================================================================
 // SUMMARY
 // =============================================================================

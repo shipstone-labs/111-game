@@ -838,21 +838,25 @@ function validatePlayableLetters(tiles) {
       }
     }
     
-    // If no 2-letter word, check 3-letter words with neighbor pairs
+    // If no 2-letter word, check 3-letter words with ADJACENT paths
+    // BUGFIX 2026-01-01: Previous code checked all permutations without verifying
+    // the tiles could actually be traversed in that order
     if (!hasValidWord) {
       for (const n1 of neighbors) {
-        for (const n2 of getNeighbors(n1)) {
+        const n1Neighbors = getNeighbors(n1);
+        for (const n2 of n1Neighbors) {
           if (n2 === i) continue; // Skip self
-          // Try all orderings: letter-n1-n2, n1-letter-n2, n1-n2-letter
-          const l = letter, a = tiles[n1].letter, b = tiles[n2].letter;
-          if (threeLetterWords.has(l + a + b) || 
-              threeLetterWords.has(a + l + b) || 
-              threeLetterWords.has(a + b + l) ||
-              threeLetterWords.has(b + a + l) ||
-              threeLetterWords.has(b + l + a) ||
-              threeLetterWords.has(l + b + a)) {
-            hasValidWord = true;
-            break;
+          
+          // Only check if n2 is NOT a direct neighbor of i (forms valid 3-tile path)
+          if (!neighbors.includes(n2)) {
+            const l = letter, a = tiles[n1].letter, b = tiles[n2].letter;
+            // Check only the two valid orderings for this specific path:
+            // i -> n1 -> n2  (l-a-b)
+            // n2 -> n1 -> i  (b-a-l)
+            if (threeLetterWords.has(l + a + b) || threeLetterWords.has(b + a + l)) {
+              hasValidWord = true;
+              break;
+            }
           }
         }
         if (hasValidWord) break;
