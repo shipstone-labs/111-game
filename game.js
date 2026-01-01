@@ -413,9 +413,9 @@ function draw() {
     ctx.fillStyle = isSel ? '#5a4010' : '#fff';
     ctx.fillText(tile.letter, x + (TILE_SIZE - faceInset) / 2, y + (TILE_SIZE - faceInset) / 2);
     
-    // Point value
+    // Point value (20px font, was 16px)
     ctx.fillStyle = isSel ? '#7a5a20' : '#aaa';
-    ctx.font = 'bold 16px system-ui';
+    ctx.font = 'bold 20px system-ui';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
     ctx.fillText(LETTER_VALUES[tile.letter], x + TILE_SIZE - faceInset - 6, y + 6);
