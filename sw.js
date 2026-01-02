@@ -1,9 +1,9 @@
-const CACHE_NAME = '111-v7';
+const CACHE_NAME = '111-v8';
 const ASSETS = [
   '/',
   '/index.html',
-  '/styles.css',
-  '/game.js',
+  '/styles.c033dd40.css',
+  '/game.449524652.js',
   '/words.txt.gz',
   '/manifest.json'
 ];
