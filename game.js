@@ -946,19 +946,6 @@ async function init() {
   draw();
 }
 
-// Service worker registration with auto-update
-if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').then(reg => {
-    reg.addEventListener('updatefound', () => {
-      const newWorker = reg.installing;
-      newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'activated' && gameState !== 'playing') {
-          window.location.reload();
-        }
-      });
-    });
-  });
-}
 
 // Start when DOM ready
 if (typeof document !== 'undefined') {
