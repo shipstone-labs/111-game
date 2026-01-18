@@ -9,7 +9,7 @@ body {
   align-items: center;
   justify-content: flex-start;
   background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-  padding: 16px;
+  padding: 12px;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
