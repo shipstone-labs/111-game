@@ -35,8 +35,8 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 70px;
-  margin-right: 12px;
+  min-width: 80px;
+  margin-right: 20px;
 }
 
 .boards-icon {
