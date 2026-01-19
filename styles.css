@@ -67,6 +67,7 @@ body {
   align-items: baseline;
   justify-content: center;
   gap: 4px;
+  margin-left: 40px;
   min-width: 110px;
 }
 
