@@ -35,8 +35,8 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 80px;
-  margin-right: 44px;
+  min-width: 120px;
+  justify-content: flex-start;
 }
 
 .boards-icon {
@@ -61,14 +61,13 @@ body {
 .boards.winner {
   animation: pulse 0.5s ease-in-out;
 }
-
 .score {
   display: flex;
   align-items: baseline;
   justify-content: center;
   gap: 4px;
-  margin-left: 40px;
-  min-width: 110px;
+  min-width: 120px;
+  flex: 1;
 }
 
 .score-value {
@@ -95,8 +94,8 @@ body {
   font-size: 53px;
   font-weight: bold;
   font-variant-numeric: tabular-nums;
-  min-width: 56px;
-  text-align: center;
+  min-width: 120px;
+  text-align: right;
 }
 
 .timer.warning {
