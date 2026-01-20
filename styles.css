@@ -41,15 +41,15 @@ body {
 }
 
 .boards-icon {
-  width: 26px;
-  height: 26px;
+  width: 40px;
+  height: 40px;
   background: #4CAF50;
-  border-radius: 5px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 16px;
+  font-size: 24px;
   font-weight: bold;
 }
 
