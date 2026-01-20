@@ -9,7 +9,7 @@ body {
   align-items: center;
   justify-content: flex-start;
   background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-  padding: 12px;
+  padding: 4px;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
@@ -147,7 +147,7 @@ canvas {
 }
 
 .word-area {
-  height: 44px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
