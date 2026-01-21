@@ -119,13 +119,13 @@ body {
 }
 
 .start-btn {
-  padding: 12px 24px;
-  font-size: 32px;
+  padding: 9px 18px;
+  font-size: 24px;
   font-weight: bold;
   background: #4a9eda;
   color: #fff;
   border: none;
-  border-radius: 48px;
+  border-radius: 36px;
   cursor: pointer;
 }
 
