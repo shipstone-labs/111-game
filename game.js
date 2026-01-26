@@ -39,6 +39,56 @@ const CONSONANT_WEIGHTS = {
 };
 
 // =============================================================================
+// AUDIO CONTEXT FOR SOUND EFFECTS
+// =============================================================================
+
+let audioContext = null;
+
+function initAudio() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+
+function playSound(frequency, duration, volume = 0.3, type = 'sine') {
+  if (!audioContext) initAudio();
+  
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator.frequency.value = frequency;
+  oscillator.type = type;
+  
+  gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+  
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + duration);
+}
+
+function playTickSound() {
+  playSound(1200, 0.05, 0.2, 'square'); // Short, high-pitched click
+}
+
+function playTrapSound() {
+  playSound(200, 0.3, 0.4, 'sawtooth'); // Low, harsh beep
+}
+
+function playSuccessSound() {
+  playSound(600, 0.2, 0.4, 'sine'); // Pleasant mid-tone
+}
+
+function playBonusSound() {
+  // Slightly louder, higher, brighter sound
+  playSound(800, 0.3, 0.5, 'sine');
+  // Add a second harmonic for richness
+  setTimeout(() => playSound(1200, 0.2, 0.3, 'sine'), 50);
+}
+
+// =============================================================================
 // STATE
 // =============================================================================
 
@@ -508,6 +558,9 @@ function handleStart(e) {
   if (gameState !== 'playing') return;
   e.preventDefault();
   
+  // Initialize audio context on first user interaction
+  if (!audioContext) initAudio();
+  
   const coords = getCoords(e);
   const tile = getTileAt(coords.x, coords.y);
   
@@ -570,13 +623,16 @@ function handleEnd(e) {
         updateScore();
         draw();
         if (result.gotBonus) {
+          playBonusSound(); // Play bonus sound
           updateTimerDisplay();
           showFeedback(`${word} = 111! Extra time every third 111`, 'bonus');
-                 } else {
+        } else {
+          playSuccessSound(); // Play regular success sound
           showFeedback(`${word} = 111! Board #${result.boardsSolved}`, 'solved');
         }
         break;
       case 'trap':
+        playTrapSound(); // Play trap sound
         updateScore();
         draw();
         showFeedback(`${word} = 110 trap!`, 'trap');
@@ -675,6 +731,11 @@ function startTimer() {
     timeRemaining--;
     updateTimerDisplay();
     
+    // Play tick sound for last 10 seconds
+    if (timeRemaining <= 10 && timeRemaining > 0) {
+      playTickSound();
+    }
+    
     if (timeRemaining <= 0) {
       stopTimer();
       endGameTimeout();
@@ -705,6 +766,9 @@ function startGame() {
     console.error('Dictionary not loaded');
     return;
   }
+  
+  // Initialize audio on game start
+  if (!audioContext) initAudio();
   
   gameState = 'playing';
   totalScore = 0;
