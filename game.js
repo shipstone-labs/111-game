@@ -19,7 +19,7 @@ const SELECTION_RADIUS = TILE_SIZE * 0.5;
 const TARGET_SCORE = 111;
 const TRAP_SCORE = 110;
 const GAME_DURATION = 60; // seconds
-const FEEDBACK_DURATION = 1500; // ms - how long feedback message shows
+const FEEDBACK_DURATION = 1800; // ms - how long feedback message shows
 
 const LETTER_VALUES = {
   A:1, B:4, C:4, D:2, E:1, F:4, G:3, H:4,
