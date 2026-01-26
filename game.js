@@ -571,8 +571,8 @@ function handleEnd(e) {
         draw();
         if (result.gotBonus) {
           updateTimerDisplay();
-          showFeedback(`${word} = 111! Board #${result.boardsSolved} +${BONUS_TIME}s bonus!`, 'bonus');
-        } else {
+          showFeedback(`${word} = 111! Extra time every third 111`, 'bonus');
+                 } else {
           showFeedback(`${word} = 111! Board #${result.boardsSolved}`, 'solved');
         }
         break;
