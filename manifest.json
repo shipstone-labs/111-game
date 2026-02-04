@@ -4,8 +4,8 @@
   "description": "The task is to score exactly 111 points as many times as possible in this word puzzle game.",
   "start_url": "/111-game/",
   "display": "standalone",
-  "background_color": "#1a1a2e",
-  "theme_color": "#1a1a2e",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
   "orientation": "portrait",
   "icons": [
     {
