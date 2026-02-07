@@ -68,11 +68,9 @@ function playSound(frequency, duration, volume = 0.3, type = 'sine') {
   oscillator.start(audioContext.currentTime);
   oscillator.stop(audioContext.currentTime + duration);
 }
-
 function playTickSound() {
-  playSound(1200, 0.05, 0.2, 'square'); // Short, high-pitched click
+  playSound(600, 0.08, 0.25, 'sine'); // Smoother, deeper, less tinny
 }
-
 function playTrapSound() {
   playSound(200, 0.3, 0.4, 'sawtooth'); // Low, harsh beep
 }
