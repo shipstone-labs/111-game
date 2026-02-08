@@ -70,5 +70,13 @@
   <div class="logo">111</div>
   <div class="tagline">The task is to score exactly 111 points as many times as possible in 60 seconds. Players get 30 more seconds each time three 111s are completed.</div>
   <button class="play-button" onclick="window.location.href='game.html'">Start</button>
+  
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker registered'))
+        .catch(err => console.log('Service Worker registration failed:', err));
+    }
+  </script>
 </body>
 </html>
