@@ -150,7 +150,7 @@ let currentBoardBest = { word: '', score: 0 };
 let dictionary = null;
 
 // DOM elements (initialized in init())
-let canvas, ctx, scoreDisplay, boardsDisplay, startBtn, wordPill, wordText, timerDisplay;
+let canvas, ctx, scoreDisplay, boardsDisplay, startBtn, wordPill, wordText, timerDisplay, resultsBtn;
 let feedbackTimeout = null;
 
 // =============================================================================
@@ -809,6 +809,12 @@ function endGameTimeout() {
   currentPos = null;
   showFeedback(`Time's up! Boards: ${boardsSolved}`, 'timeout');
   startBtn.textContent = 'New Game';
+  
+  // Show results button
+  if (resultsBtn) {
+    resultsBtn.classList.add('visible');
+  }
+  
   draw(); // Redraw to clear selection visuals
 }
 
@@ -835,6 +841,12 @@ function startGame() {
   board = generateValidBoard();
   updateScore();
   startBtn.textContent = 'Reset';
+  
+  // Hide results button when starting new game
+  if (resultsBtn) {
+    resultsBtn.classList.remove('visible');
+  }
+  
   startTimer();
   draw();
 }
@@ -853,6 +865,12 @@ function resetGame() {
   board = generateValidBoard();
   gameState = 'playing';
   updateScore();
+  
+  // Hide results button when resetting game
+  if (resultsBtn) {
+    resultsBtn.classList.remove('visible');
+  }
+  
   startTimer();
   draw();
 }
@@ -1036,6 +1054,7 @@ async function init() {
   wordPill = document.getElementById('wordPill');
   wordText = document.getElementById('wordText');
   timerDisplay = document.getElementById('timer');
+  resultsBtn = document.getElementById('resultsBtn');
   
   canvas.width = BOARD_WIDTH;
   canvas.height = BOARD_HEIGHT;
