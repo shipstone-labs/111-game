@@ -10,6 +10,33 @@
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
   <link rel="apple-touch-icon" href="icon-512.png">
+  <style>
+    /* Results button styling */
+    #resultsBtn {
+      margin-top: 16px;
+      padding: 16px 32px;
+      font-size: 18px;
+      font-weight: bold;
+      background: #008E97;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      width: 100%;
+      max-width: 300px;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0, 142, 151, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    #resultsBtn.visible {
+      display: block;
+    }
+    
+    #resultsBtn:active {
+      transform: scale(0.95);
+    }
+  </style>
 </head>
 <body>
   <div class="game-container">
@@ -33,6 +60,9 @@
     <canvas id="board"></canvas>
     <div class="button-container">
       <button class="start-btn" id="startBtn">Play</button>
+      <button id="resultsBtn" onclick="window.location.href='results.html'">
+        See Best Results From This Game
+      </button>
     </div>
   </div>
   <script src="game.js"></script>
@@ -43,6 +73,26 @@
         .then(reg => console.log('Service Worker registered'))
         .catch(err => console.log('Service Worker registration failed:', err));
     }
+    
+    // Show/hide results button based on game state
+    const resultsBtn = document.getElementById('resultsBtn');
+    const startBtn = document.getElementById('startBtn');
+    
+    // Show results button when game ends
+    const originalStartBtnClick = startBtn.onclick;
+    startBtn.addEventListener('click', function() {
+      // Hide results button when starting new game
+      if (startBtn.textContent === 'Play' || startBtn.textContent === 'New Game') {
+        resultsBtn.classList.remove('visible');
+      }
+    });
+    
+    // Watch for game timeout to show results button
+    setInterval(() => {
+      if (startBtn.textContent === 'New Game') {
+        resultsBtn.classList.add('visible');
+      }
+    }, 500);
   </script>
 </body>
 </html>

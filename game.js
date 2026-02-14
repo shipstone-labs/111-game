@@ -68,9 +68,11 @@ function playSound(frequency, duration, volume = 0.3, type = 'sine') {
   oscillator.start(audioContext.currentTime);
   oscillator.stop(audioContext.currentTime + duration);
 }
+
 function playTickSound() {
   playSound(600, 0.08, 0.25, 'sine'); // Smoother, deeper, less tinny
 }
+
 function playTrapSound() {
   playSound(200, 0.3, 0.4, 'sawtooth'); // Low, harsh beep
 }
@@ -84,6 +86,35 @@ function playBonusSound() {
   playSound(800, 0.3, 0.5, 'sine');
   // Add a second harmonic for richness
   setTimeout(() => playSound(1200, 0.2, 0.3, 'sine'), 50);
+}
+
+// =============================================================================
+// BOARD TRACKING
+// =============================================================================
+
+function saveCurrentBoardResult() {
+  // Save the best word found on current board
+  boardResults[currentBoardIndex] = {
+    playerWord: currentBoardBest.word,
+    playerScore: currentBoardBest.score,
+    bestWord: 'TBD',  // Placeholder for now
+    bestScore: '?'     // Placeholder for now
+  };
+  
+  // Save to sessionStorage
+  sessionStorage.setItem('boardResults', JSON.stringify(boardResults));
+}
+
+function resetBoardTracking() {
+  // Reset tracking for new board
+  currentBoardBest = { word: '', score: 0 };
+}
+
+function trackWord(word, score) {
+  // Update if this word is better than current best for this board
+  if (score > currentBoardBest.score) {
+    currentBoardBest = { word, score };
+  }
 }
 
 // =============================================================================
@@ -109,6 +140,11 @@ let timerInterval = null;
 let boardsSolved = 0;
 const BONUS_THRESHOLD = 3;
 const BONUS_TIME = 30;
+
+/** Board tracking for results page */
+let boardResults = [];
+let currentBoardIndex = 0;
+let currentBoardBest = { word: '', score: 0 };
 
 /** @type {Set<string>|null} Dictionary loaded from words.txt.gz */
 let dictionary = null;
@@ -303,21 +339,34 @@ function processWordSubmission(path) {
   foundWords.add(word);
   
   const wordScore = calculateWordScore(path, board);
+  
+  // Track this word for the results page
+  trackWord(word, wordScore);
+  
   const newTotal = totalScore + wordScore;
   
   if (newTotal === TARGET_SCORE) {
     // Solved - increment boards, reset score (same board, words stay blocked)
+    saveCurrentBoardResult();
     boardsSolved++;
+    currentBoardIndex++;
+    resetBoardTracking();
     totalScore = 0;
     const gotBonus = boardsSolved % BONUS_THRESHOLD === 0;
     if (gotBonus) timeRemaining += BONUS_TIME;
     return { result: 'solved', word, wordScore, boardsSolved, gotBonus };
   } else if (newTotal === TRAP_SCORE) {
     // Trap - reset score (same board, words stay blocked)
+    saveCurrentBoardResult();
+    currentBoardIndex++;
+    resetBoardTracking();
     totalScore = 0;
     return { result: 'trap', word, wordScore, newTotal, boardsSolved };
   } else if (newTotal > TARGET_SCORE) {
     // Overshoot - reset score (same board, words stay blocked)
+    saveCurrentBoardResult();
+    currentBoardIndex++;
+    resetBoardTracking();
     totalScore = 0;
     return { result: 'overshoot', word, wordScore, newTotal, boardsSolved };
   } else {
@@ -750,6 +799,10 @@ function stopTimer() {
 
 function endGameTimeout() {
   gameState = 'timeout';
+  
+  // Save the final board result
+  saveCurrentBoardResult();
+  
   // Clear any in-progress selection
   selectedPath = [];
   isDragging = false;
@@ -772,6 +825,13 @@ function startGame() {
   totalScore = 0;
   boardsSolved = 0;
   foundWords.clear();
+  
+  // Reset board tracking for new game
+  boardResults = [];
+  currentBoardIndex = 0;
+  currentBoardBest = { word: '', score: 0 };
+  sessionStorage.removeItem('boardResults');
+  
   board = generateValidBoard();
   updateScore();
   startBtn.textContent = 'Reset';
@@ -783,6 +843,13 @@ function resetGame() {
   totalScore = 0;
   boardsSolved = 0;
   foundWords.clear();
+  
+  // Reset board tracking
+  boardResults = [];
+  currentBoardIndex = 0;
+  currentBoardBest = { word: '', score: 0 };
+  sessionStorage.removeItem('boardResults');
+  
   board = generateValidBoard();
   gameState = 'playing';
   updateScore();
