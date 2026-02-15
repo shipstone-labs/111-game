@@ -19,10 +19,11 @@
       background: #1a1a2e;
       color: white;
       padding: 20px;
+      padding-bottom: 80px;
     }
     
     .container {
-      max-width: 600px;
+      max-width: 700px;
       margin: 0 auto;
     }
     
@@ -33,57 +34,96 @@
       color: #4a9eda;
     }
     
-    .board-section {
-      margin-bottom: 40px;
+    .top-words-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 50px;
+    }
+    
+    .words-column {
       background: rgba(255, 255, 255, 0.05);
       border-radius: 12px;
       padding: 20px;
     }
     
-    .board-title {
-      text-align: center;
-      font-size: 24px;
+    .column-title {
+      font-size: 20px;
       font-weight: bold;
+      text-align: center;
       margin-bottom: 20px;
-      color: #4a9eda;
-    }
-    
-    .comparison {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-    
-    .column {
-      text-align: center;
-    }
-    
-    .column-header {
-      font-size: 14px;
-      font-weight: bold;
-      color: #aaa;
-      margin-bottom: 12px;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
     
-    .word-display {
-      font-size: 28px;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
-    
-    .score-display {
-      font-size: 18px;
+    .player-title {
       color: #4a9eda;
     }
     
-    .player-word {
-      color: white;
+    .best-title {
+      color: #4CAF50;
     }
     
-    .best-word {
-      color: #4CAF50;
+    .word-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+    }
+    
+    .word-rank {
+      font-size: 14px;
+      color: #666;
+      width: 25px;
+    }
+    
+    .word-text {
+      flex: 1;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    
+    .word-score {
+      font-size: 16px;
+      color: #4a9eda;
+    }
+    
+    .board-preview-section {
+      margin-top: 40px;
+      text-align: center;
+    }
+    
+    .board-preview-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #aaa;
+      margin-bottom: 15px;
+    }
+    
+    .board-thumbnail {
+      display: inline-block;
+      cursor: pointer;
+      border: 3px solid #4a9eda;
+      border-radius: 12px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    
+    .board-thumbnail:hover {
+      transform: scale(1.05);
+      border-color: #6ab8f0;
+    }
+    
+    .board-thumbnail:active {
+      transform: scale(0.98);
+    }
+    
+    .click-hint {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #888;
     }
     
     .back-button {
@@ -112,47 +152,302 @@
       color: #aaa;
       margin: 40px 0;
     }
+    
+    /* Modal for full board view */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .modal.visible {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: #1a1a2e;
+      padding: 20px;
+      border-radius: 12px;
+    }
+    
+    .modal-header {
+      text-align: center;
+      font-size: 24px;
+      color: #4a9eda;
+      margin-bottom: 20px;
+    }
+    
+    .close-button {
+      display: block;
+      margin: 20px auto 0;
+      padding: 12px 32px;
+      font-size: 18px;
+      background: #4a9eda;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+    }
+    
+    .close-button:active {
+      transform: scale(0.95);
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Best Words</h1>
-    <div id="results-container"></div>
+    
+    <div id="content"></div>
+    
     <a href="game.html" class="back-button">Back to Game</a>
   </div>
 
+  <!-- Modal for full board view -->
+  <div id="boardModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">Final Board</div>
+      <canvas id="fullBoardCanvas"></canvas>
+      <button class="close-button" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
   <script>
-    // Load board results from sessionStorage
-    const boardResults = JSON.parse(sessionStorage.getItem('boardResults') || '[]');
+// Constants from game.js for rendering
+const GRID_SIZE = 4;
+const TILE_SIZE = 72;
+const TILE_GAP = 12;
+const BOARD_PADDING = 16;
+const BADGE_RADIUS = 14;
+const BOARD_WIDTH = TILE_SIZE * GRID_SIZE + TILE_GAP * (GRID_SIZE - 1) + BOARD_PADDING * 2;
+const BOARD_HEIGHT = BOARD_WIDTH;
+
+const LETTER_VALUES = {
+  A:1, B:4, C:4, D:2, E:1, F:4, G:3, H:4,
+  I:1, J:8, K:5, L:2, M:3, N:1, O:1, P:4,
+  Q:10, R:1, S:1, T:1, U:2, V:5, W:4, X:8, Y:4, Z:10
+};
+
+const MULTIPLIER_COLORS = { 
+  DL:'#4CAF50', 
+  TL:'#2196F3', 
+  DW:'#FF9800', 
+  TW:'#F44336' 
+};
+
+// Load results
+const boardResults = JSON.parse(sessionStorage.getItem('boardResults') || '{}');
+
+function lightenColor(hex, pct) {
+  const num = parseInt(hex.replace('#',''), 16);
+  const amt = Math.round(2.55 * pct);
+  const R = Math.min(255, (num >> 16) + amt);
+  const G = Math.min(255, ((num >> 8) & 0xFF) + amt);
+  const B = Math.min(255, (num & 0xFF) + amt);
+  return `rgb(${R},${G},${B})`;
+}
+
+function drawBoard(canvas, boardLayout) {
+  const ctx = canvas.getContext('2d');
+  const cornerRadius = 12;
+  const faceInset = 4;
+  
+  canvas.width = BOARD_WIDTH;
+  canvas.height = BOARD_HEIGHT;
+  
+  // Background
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw tiles
+  for (let i = 0; i < boardLayout.length; i++) {
+    const tile = boardLayout[i];
+    const x = BOARD_PADDING + tile.col * (TILE_SIZE + TILE_GAP);
+    const y = BOARD_PADDING + tile.row * (TILE_SIZE + TILE_GAP);
     
-    const container = document.getElementById('results-container');
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.beginPath();
+    ctx.roundRect(x + 3, y + 4, TILE_SIZE, TILE_SIZE, cornerRadius);
+    ctx.fill();
     
-    if (boardResults.length === 0) {
-      container.innerHTML = '<div class="empty-message">No game data available. Play a game first!</div>';
-    } else {
-      boardResults.forEach((board, index) => {
-        const section = document.createElement('div');
-        section.className = 'board-section';
-        
-        section.innerHTML = `
-          <div class="board-title">Board ${index + 1}</div>
-          <div class="comparison">
-            <div class="column">
-              <div class="column-header">Player's Best</div>
-              <div class="word-display player-word">${board.playerWord || '—'}</div>
-              <div class="score-display">${board.playerScore || 0} points</div>
-            </div>
-            <div class="column">
-              <div class="column-header">Best Possible</div>
-              <div class="word-display best-word">${board.bestWord || 'TBD'}</div>
-              <div class="score-display">${board.bestScore || '?'} points</div>
-            </div>
-          </div>
-        `;
-        
-        container.appendChild(section);
-      });
+    // Tile base
+    ctx.fillStyle = '#2a2a4a';
+    ctx.beginPath();
+    ctx.roundRect(x, y, TILE_SIZE, TILE_SIZE, cornerRadius);
+    ctx.fill();
+    
+    // Tile face
+    const tileGrad = ctx.createLinearGradient(x, y, x, y + TILE_SIZE - faceInset);
+    tileGrad.addColorStop(0, '#3a3a5a');
+    tileGrad.addColorStop(1, '#2a2a4a');
+    ctx.fillStyle = tileGrad;
+    ctx.beginPath();
+    ctx.roundRect(x, y, TILE_SIZE - faceInset, TILE_SIZE - faceInset, cornerRadius);
+    ctx.fill();
+    
+    // Multiplier border
+    if (tile.multiplier) {
+      ctx.strokeStyle = MULTIPLIER_COLORS[tile.multiplier];
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(x + 1.5, y + 1.5, TILE_SIZE - faceInset - 3, TILE_SIZE - faceInset - 3, cornerRadius - 2);
+      ctx.stroke();
     }
+    
+    // Letter shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.font = 'bold 38px system-ui';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(tile.letter, x + (TILE_SIZE - faceInset) / 2 + 1, y + (TILE_SIZE - faceInset) / 2 + 2);
+    
+    // Letter
+    ctx.fillStyle = '#fff';
+    ctx.fillText(tile.letter, x + (TILE_SIZE - faceInset) / 2, y + (TILE_SIZE - faceInset) / 2);
+    
+    // Point value
+    ctx.fillStyle = '#aaa';
+    ctx.font = 'bold 20px system-ui';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'top';
+    ctx.fillText(LETTER_VALUES[tile.letter], x + TILE_SIZE - faceInset - 6, y + 6);
+  }
+  
+  // Draw multiplier badges
+  for (let i = 0; i < boardLayout.length; i++) {
+    const tile = boardLayout[i];
+    if (!tile.multiplier) continue;
+    
+    const x = BOARD_PADDING + tile.col * (TILE_SIZE + TILE_GAP);
+    const y = BOARD_PADDING + tile.row * (TILE_SIZE + TILE_GAP);
+    const bx = x - 2, by = y - 2;
+    
+    // Badge shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.beginPath();
+    ctx.arc(bx + BADGE_RADIUS + 1, by + BADGE_RADIUS + 1, BADGE_RADIUS, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Badge background
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(bx + BADGE_RADIUS, by + BADGE_RADIUS, BADGE_RADIUS, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Badge gradient
+    const badgeGrad = ctx.createLinearGradient(bx, by, bx, by + BADGE_RADIUS * 2);
+    badgeGrad.addColorStop(0, lightenColor(MULTIPLIER_COLORS[tile.multiplier], 15));
+    badgeGrad.addColorStop(1, MULTIPLIER_COLORS[tile.multiplier]);
+    ctx.fillStyle = badgeGrad;
+    ctx.beginPath();
+    ctx.arc(bx + BADGE_RADIUS, by + BADGE_RADIUS, BADGE_RADIUS - 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Badge text
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px system-ui';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(tile.multiplier, bx + BADGE_RADIUS, by + BADGE_RADIUS);
+  }
+}
+
+function showFullBoard() {
+  const modal = document.getElementById('boardModal');
+  const canvas = document.getElementById('fullBoardCanvas');
+  
+  if (boardResults.finalBoard) {
+    drawBoard(canvas, boardResults.finalBoard);
+    modal.classList.add('visible');
+  }
+}
+
+function closeModal() {
+  document.getElementById('boardModal').classList.remove('visible');
+}
+
+// Close on background click
+document.getElementById('boardModal').addEventListener('click', (e) => {
+  if (e.target.id === 'boardModal') closeModal();
+});
+
+// Display results
+const content = document.getElementById('content');
+
+if (!boardResults.playerWords || boardResults.playerWords.length === 0) {
+  content.innerHTML = '<div class="empty-message">No game data available. Play a game first!</div>';
+} else {
+  // Sort and get top 10
+  const topPlayerWords = [...boardResults.playerWords]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
+  
+  const topBestWords = [...(boardResults.bestWords || [])]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
+  
+  // Build HTML
+  let html = '<div class="top-words-section">';
+  
+  // Player's top 10
+  html += '<div class="words-column">';
+  html += '<div class="column-title player-title">Your Top 10</div>';
+  topPlayerWords.forEach((item, index) => {
+    html += `
+      <div class="word-item">
+        <span class="word-rank">${index + 1}.</span>
+        <span class="word-text">${item.word}</span>
+        <span class="word-score">${item.score}</span>
+      </div>
+    `;
+  });
+  html += '</div>';
+  
+  // Best possible top 10
+  html += '<div class="words-column">';
+  html += '<div class="column-title best-title">Best Possible Top 10</div>';
+  if (topBestWords.length > 0) {
+    topBestWords.forEach((item, index) => {
+      html += `
+        <div class="word-item">
+          <span class="word-rank">${index + 1}.</span>
+          <span class="word-text">${item.word}</span>
+          <span class="word-score">${item.score}</span>
+        </div>
+      `;
+    });
+  } else {
+    html += '<div class="empty-message">No data</div>';
+  }
+  html += '</div>';
+  
+  html += '</div>';
+  
+  // Final board preview
+  if (boardResults.finalBoard) {
+    html += '<div class="board-preview-section">';
+    html += '<div class="board-preview-title">Final Board</div>';
+    html += '<canvas id="boardThumbnail" class="board-thumbnail" onclick="showFullBoard()" width="' + BOARD_WIDTH + '" height="' + BOARD_HEIGHT + '"></canvas>';
+    html += '<div class="click-hint">Click to enlarge</div>';
+    html += '</div>';
+  }
+  
+  content.innerHTML = html;
+  
+  // Draw thumbnail
+  if (boardResults.finalBoard) {
+    const thumbnail = document.getElementById('boardThumbnail');
+    drawBoard(thumbnail, boardResults.finalBoard);
+  }
+}
   </script>
 </body>
 </html>

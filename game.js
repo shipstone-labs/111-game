@@ -93,12 +93,15 @@ function playBonusSound() {
 // =============================================================================
 
 function saveCurrentBoardResult() {
+  // Find the best possible word for this board
+  const bestPossible = findBestPossibleWord();
+  
   // Save the best word found on current board
   boardResults[currentBoardIndex] = {
     playerWord: currentBoardBest.word,
     playerScore: currentBoardBest.score,
-    bestWord: 'TBD',  // Placeholder for now
-    bestScore: '?'     // Placeholder for now
+    bestWord: bestPossible.word,
+    bestScore: bestPossible.score
   };
   
   // Save to sessionStorage
@@ -115,6 +118,75 @@ function trackWord(word, score) {
   if (score > currentBoardBest.score) {
     currentBoardBest = { word, score };
   }
+}
+
+/**
+ * Find all possible paths starting from a given tile
+ * @param {number} startIdx - Starting tile index
+ * @param {number[]} currentPath - Current path being built
+ * @param {Set<number>} visited - Visited tiles in current path
+ * @param {Object[]} allPaths - Array to collect all paths
+ */
+function findAllPaths(startIdx, currentPath, visited, allPaths) {
+  // Add current path if it's at least 2 letters
+  if (currentPath.length >= 2) {
+    allPaths.push([...currentPath]);
+  }
+  
+  // Stop if path is too long (diminishing returns after ~12 letters)
+  if (currentPath.length >= 12) return;
+  
+  // Try extending to each adjacent unvisited tile
+  const neighbors = getNeighbors(startIdx);
+  for (const nextIdx of neighbors) {
+    if (!visited.has(nextIdx)) {
+      visited.add(nextIdx);
+      currentPath.push(nextIdx);
+      findAllPaths(nextIdx, currentPath, visited, allPaths);
+      currentPath.pop();
+      visited.delete(nextIdx);
+    }
+  }
+}
+
+/**
+ * Find the best possible word on the current board (not 110 trap)
+ * @returns {Object} { word: string, score: number }
+ */
+function findBestPossibleWord() {
+  if (!dictionary || board.length === 0) {
+    return { word: 'N/A', score: 0 };
+  }
+  
+  let bestWord = '';
+  let bestScore = 0;
+  
+  // Try starting from each tile
+  for (let startIdx = 0; startIdx < board.length; startIdx++) {
+    const allPaths = [];
+    findAllPaths(startIdx, [startIdx], new Set([startIdx]), allPaths);
+    
+    // Check each path
+    for (const path of allPaths) {
+      const word = path.map(i => board[i].letter).join('');
+      
+      // Skip if not a valid word
+      if (!isValidWord(word)) continue;
+      
+      const score = calculateWordScore(path, board);
+      
+      // Skip 110 traps
+      if (score === TRAP_SCORE) continue;
+      
+      // Update best if this is better
+      if (score > bestScore) {
+        bestScore = score;
+        bestWord = word;
+      }
+    }
+  }
+  
+  return { word: bestWord || 'N/A', score: bestScore };
 }
 
 // =============================================================================
