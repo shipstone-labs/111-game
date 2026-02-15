@@ -23,7 +23,7 @@
     }
     
     .container {
-      max-width: 700px;
+      max-width: 500px;
       margin: 0 auto;
     }
     
@@ -35,16 +35,10 @@
     }
     
     .top-words-section {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 30px;
-      margin-bottom: 50px;
-    }
-    
-    .words-column {
       background: rgba(255, 255, 255, 0.05);
       border-radius: 12px;
       padding: 20px;
+      margin-bottom: 50px;
     }
     
     .column-title {
@@ -54,21 +48,14 @@
       margin-bottom: 20px;
       text-transform: uppercase;
       letter-spacing: 1px;
-    }
-    
-    .player-title {
       color: #4a9eda;
-    }
-    
-    .best-title {
-      color: #4CAF50;
     }
     
     .word-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px;
+      padding: 12px;
       margin-bottom: 8px;
       background: rgba(255, 255, 255, 0.03);
       border-radius: 8px;
@@ -77,18 +64,19 @@
     .word-rank {
       font-size: 14px;
       color: #666;
-      width: 25px;
+      width: 30px;
     }
     
     .word-text {
       flex: 1;
-      font-size: 18px;
+      font-size: 20px;
       font-weight: bold;
     }
     
     .word-score {
-      font-size: 16px;
+      font-size: 18px;
       color: #4a9eda;
+      font-weight: bold;
     }
     
     .board-preview-section {
@@ -203,7 +191,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Best Words</h1>
+    <h1>Your Best Words</h1>
     
     <div id="content"></div>
     
@@ -390,16 +378,9 @@ if (!boardResults.playerWords || boardResults.playerWords.length === 0) {
     .sort((a, b) => b.score - a.score)
     .slice(0, 10);
   
-  const topBestWords = [...(boardResults.bestWords || [])]
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 10);
-  
   // Build HTML
   let html = '<div class="top-words-section">';
-  
-  // Player's top 10
-  html += '<div class="words-column">';
-  html += '<div class="column-title player-title">Your Top 10</div>';
+  html += '<div class="column-title">Your Top 10 Words</div>';
   topPlayerWords.forEach((item, index) => {
     html += `
       <div class="word-item">
@@ -409,26 +390,6 @@ if (!boardResults.playerWords || boardResults.playerWords.length === 0) {
       </div>
     `;
   });
-  html += '</div>';
-  
-  // Best possible top 10
-  html += '<div class="words-column">';
-  html += '<div class="column-title best-title">Best Possible Top 10</div>';
-  if (topBestWords.length > 0) {
-    topBestWords.forEach((item, index) => {
-      html += `
-        <div class="word-item">
-          <span class="word-rank">${index + 1}.</span>
-          <span class="word-text">${item.word}</span>
-          <span class="word-score">${item.score}</span>
-        </div>
-      `;
-    });
-  } else {
-    html += '<div class="empty-message">No data</div>';
-  }
-  html += '</div>';
-  
   html += '</div>';
   
   // Final board preview
