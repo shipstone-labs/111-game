@@ -23,7 +23,7 @@
     }
     
     .container {
-      max-width: 500px;
+      max-width: 700px;
       margin: 0 auto;
     }
     
@@ -34,11 +34,24 @@
       color: #4a9eda;
     }
     
+    .loading {
+      text-align: center;
+      font-size: 18px;
+      color: #aaa;
+      margin: 60px 0;
+    }
+    
     .top-words-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 50px;
+    }
+    
+    .words-column {
       background: rgba(255, 255, 255, 0.05);
       border-radius: 12px;
       padding: 20px;
-      margin-bottom: 50px;
     }
     
     .column-title {
@@ -48,14 +61,21 @@
       margin-bottom: 20px;
       text-transform: uppercase;
       letter-spacing: 1px;
+    }
+    
+    .player-title {
       color: #4a9eda;
+    }
+    
+    .best-title {
+      color: #4CAF50;
     }
     
     .word-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px;
+      padding: 10px;
       margin-bottom: 8px;
       background: rgba(255, 255, 255, 0.03);
       border-radius: 8px;
@@ -64,19 +84,18 @@
     .word-rank {
       font-size: 14px;
       color: #666;
-      width: 30px;
+      width: 25px;
     }
     
     .word-text {
       flex: 1;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: bold;
     }
     
     .word-score {
-      font-size: 18px;
+      font-size: 16px;
       color: #4a9eda;
-      font-weight: bold;
     }
     
     .board-preview-section {
@@ -191,9 +210,11 @@
 </head>
 <body>
   <div class="container">
-    <h1>Your Best Words</h1>
+    <h1>Best Words</h1>
     
-    <div id="content"></div>
+    <div id="content">
+      <div class="loading">Analyzing boards...</div>
+    </div>
     
     <a href="game.html" class="back-button">Back to Game</a>
   </div>
@@ -208,7 +229,7 @@
   </div>
 
   <script>
-// Constants from game.js for rendering
+// Game constants and solver code
 const GRID_SIZE = 4;
 const TILE_SIZE = 72;
 const TILE_GAP = 12;
@@ -216,6 +237,8 @@ const BOARD_PADDING = 16;
 const BADGE_RADIUS = 14;
 const BOARD_WIDTH = TILE_SIZE * GRID_SIZE + TILE_GAP * (GRID_SIZE - 1) + BOARD_PADDING * 2;
 const BOARD_HEIGHT = BOARD_WIDTH;
+const TARGET_SCORE = 111;
+const TRAP_SCORE = 110;
 
 const LETTER_VALUES = {
   A:1, B:4, C:4, D:2, E:1, F:4, G:3, H:4,
@@ -230,9 +253,208 @@ const MULTIPLIER_COLORS = {
   TW:'#F44336' 
 };
 
-// Load results
+// Load dictionary and board results
+let dictionary = null;
 const boardResults = JSON.parse(sessionStorage.getItem('boardResults') || '{}');
 
+// Solver functions (copied from game.js)
+function getNeighbors(index) {
+  const row = Math.floor(index / 4);
+  const col = index % 4;
+  const neighbors = [];
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      if (dr === 0 && dc === 0) continue;
+      const nr = row + dr, nc = col + dc;
+      if (nr >= 0 && nr < 4 && nc >= 0 && nc < 4) {
+        neighbors.push(nr * 4 + nc);
+      }
+    }
+  }
+  return neighbors;
+}
+
+function getLengthBonus(length) {
+  if (length < 5) return 0;
+  return Math.min((length - 4) * 5, 25);
+}
+
+function calculateWordScore(path, boardTiles) {
+  let letterSum = 0;
+  let wordMultiplier = 1;
+  
+  for (const idx of path) {
+    const tile = boardTiles[idx];
+    let letterValue = LETTER_VALUES[tile.letter] || 1;
+    
+    if (tile.multiplier === 'DL') letterValue *= 2;
+    else if (tile.multiplier === 'TL') letterValue *= 3;
+    else if (tile.multiplier === 'DW') wordMultiplier *= 2;
+    else if (tile.multiplier === 'TW') wordMultiplier *= 3;
+    
+    letterSum += letterValue;
+  }
+  
+  return letterSum * wordMultiplier + getLengthBonus(path.length);
+}
+
+function isValidWord(word) {
+  if (!dictionary || word.length < 2) return false;
+  return dictionary.has(word.toUpperCase());
+}
+
+function findAllPaths(startIdx, currentPath, visited, allPaths) {
+  if (currentPath.length >= 2) {
+    allPaths.push([...currentPath]);
+  }
+  
+  if (currentPath.length >= 12) return;
+  
+  const neighbors = getNeighbors(startIdx);
+  for (const nextIdx of neighbors) {
+    if (!visited.has(nextIdx)) {
+      visited.add(nextIdx);
+      currentPath.push(nextIdx);
+      findAllPaths(nextIdx, currentPath, visited, allPaths);
+      currentPath.pop();
+      visited.delete(nextIdx);
+    }
+  }
+}
+
+function findBestPossibleWord(boardTiles) {
+  if (!dictionary || boardTiles.length === 0) {
+    return { word: 'N/A', score: 0 };
+  }
+  
+  let bestWord = '';
+  let bestScore = 0;
+  
+  for (let startIdx = 0; startIdx < boardTiles.length; startIdx++) {
+    const allPaths = [];
+    findAllPaths(startIdx, [startIdx], new Set([startIdx]), allPaths);
+    
+    for (const path of allPaths) {
+      const word = path.map(i => boardTiles[i].letter).join('');
+      
+      if (!isValidWord(word)) continue;
+      
+      const score = calculateWordScore(path, boardTiles);
+      
+      if (score === TRAP_SCORE) continue;
+      
+      if (score > bestScore) {
+        bestScore = score;
+        bestWord = word;
+      }
+    }
+  }
+  
+  return { word: bestWord || 'N/A', score: bestScore };
+}
+
+// Load dictionary
+async function loadDictionary() {
+  try {
+    const response = await fetch('words.txt.gz');
+    const blob = await response.blob();
+    const ds = new DecompressionStream('gzip');
+    const decompressed = blob.stream().pipeThrough(ds);
+    const text = await new Response(decompressed).text();
+    dictionary = new Set(text.trim().toUpperCase().split('\n'));
+    return true;
+  } catch (err) {
+    console.error('Failed to load dictionary:', err);
+    return false;
+  }
+}
+
+// Analyze all boards and find best possible words
+async function analyzeBoardsAndDisplay() {
+  if (!boardResults.playerWords || boardResults.playerWords.length === 0) {
+    document.getElementById('content').innerHTML = '<div class="empty-message">No game data available. Play a game first!</div>';
+    return;
+  }
+  
+  // Load dictionary first
+  await loadDictionary();
+  
+  // Find best possible words from all boards
+  const bestPossibleWords = [];
+  if (boardResults.boardStates && dictionary) {
+    for (const boardState of boardResults.boardStates) {
+      const result = findBestPossibleWord(boardState);
+      if (result.word !== 'N/A') {
+        bestPossibleWords.push(result);
+      }
+    }
+  }
+  
+  // Get top 10 from each
+  const topPlayerWords = [...boardResults.playerWords]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
+  
+  const topBestWords = bestPossibleWords
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
+  
+  // Build HTML
+  let html = '<div class="top-words-section">';
+  
+  // Player's top 10
+  html += '<div class="words-column">';
+  html += '<div class="column-title player-title">Your Top 10</div>';
+  topPlayerWords.forEach((item, index) => {
+    html += `
+      <div class="word-item">
+        <span class="word-rank">${index + 1}.</span>
+        <span class="word-text">${item.word}</span>
+        <span class="word-score">${item.score}</span>
+      </div>
+    `;
+  });
+  html += '</div>';
+  
+  // Best possible top 10
+  html += '<div class="words-column">';
+  html += '<div class="column-title best-title">Best Possible Top 10</div>';
+  if (topBestWords.length > 0) {
+    topBestWords.forEach((item, index) => {
+      html += `
+        <div class="word-item">
+          <span class="word-rank">${index + 1}.</span>
+          <span class="word-text">${item.word}</span>
+          <span class="word-score">${item.score}</span>
+        </div>
+      `;
+    });
+  } else {
+    html += '<div class="empty-message">Analyzing...</div>';
+  }
+  html += '</div>';
+  
+  html += '</div>';
+  
+  // Final board preview
+  if (boardResults.finalBoard) {
+    html += '<div class="board-preview-section">';
+    html += '<div class="board-preview-title">Final Board</div>';
+    html += '<canvas id="boardThumbnail" class="board-thumbnail" onclick="showFullBoard()" width="' + BOARD_WIDTH + '" height="' + BOARD_HEIGHT + '"></canvas>';
+    html += '<div class="click-hint">Click to enlarge</div>';
+    html += '</div>';
+  }
+  
+  document.getElementById('content').innerHTML = html;
+  
+  // Draw thumbnail
+  if (boardResults.finalBoard) {
+    const thumbnail = document.getElementById('boardThumbnail');
+    drawBoard(thumbnail, boardResults.finalBoard);
+  }
+}
+
+// Drawing functions
 function lightenColor(hex, pct) {
   const num = parseInt(hex.replace('#',''), 16);
   const amt = Math.round(2.55 * pct);
@@ -250,29 +472,24 @@ function drawBoard(canvas, boardLayout) {
   canvas.width = BOARD_WIDTH;
   canvas.height = BOARD_HEIGHT;
   
-  // Background
   ctx.fillStyle = '#1a1a2e';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // Draw tiles
   for (let i = 0; i < boardLayout.length; i++) {
     const tile = boardLayout[i];
     const x = BOARD_PADDING + tile.col * (TILE_SIZE + TILE_GAP);
     const y = BOARD_PADDING + tile.row * (TILE_SIZE + TILE_GAP);
     
-    // Shadow
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.beginPath();
     ctx.roundRect(x + 3, y + 4, TILE_SIZE, TILE_SIZE, cornerRadius);
     ctx.fill();
     
-    // Tile base
     ctx.fillStyle = '#2a2a4a';
     ctx.beginPath();
     ctx.roundRect(x, y, TILE_SIZE, TILE_SIZE, cornerRadius);
     ctx.fill();
     
-    // Tile face
     const tileGrad = ctx.createLinearGradient(x, y, x, y + TILE_SIZE - faceInset);
     tileGrad.addColorStop(0, '#3a3a5a');
     tileGrad.addColorStop(1, '#2a2a4a');
@@ -281,7 +498,6 @@ function drawBoard(canvas, boardLayout) {
     ctx.roundRect(x, y, TILE_SIZE - faceInset, TILE_SIZE - faceInset, cornerRadius);
     ctx.fill();
     
-    // Multiplier border
     if (tile.multiplier) {
       ctx.strokeStyle = MULTIPLIER_COLORS[tile.multiplier];
       ctx.lineWidth = 3;
@@ -290,18 +506,15 @@ function drawBoard(canvas, boardLayout) {
       ctx.stroke();
     }
     
-    // Letter shadow
     ctx.fillStyle = 'rgba(0,0,0,0.3)';
     ctx.font = 'bold 38px system-ui';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(tile.letter, x + (TILE_SIZE - faceInset) / 2 + 1, y + (TILE_SIZE - faceInset) / 2 + 2);
     
-    // Letter
     ctx.fillStyle = '#fff';
     ctx.fillText(tile.letter, x + (TILE_SIZE - faceInset) / 2, y + (TILE_SIZE - faceInset) / 2);
     
-    // Point value
     ctx.fillStyle = '#aaa';
     ctx.font = 'bold 20px system-ui';
     ctx.textAlign = 'right';
@@ -309,7 +522,6 @@ function drawBoard(canvas, boardLayout) {
     ctx.fillText(LETTER_VALUES[tile.letter], x + TILE_SIZE - faceInset - 6, y + 6);
   }
   
-  // Draw multiplier badges
   for (let i = 0; i < boardLayout.length; i++) {
     const tile = boardLayout[i];
     if (!tile.multiplier) continue;
@@ -318,19 +530,16 @@ function drawBoard(canvas, boardLayout) {
     const y = BOARD_PADDING + tile.row * (TILE_SIZE + TILE_GAP);
     const bx = x - 2, by = y - 2;
     
-    // Badge shadow
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.beginPath();
     ctx.arc(bx + BADGE_RADIUS + 1, by + BADGE_RADIUS + 1, BADGE_RADIUS, 0, Math.PI * 2);
     ctx.fill();
     
-    // Badge background
     ctx.fillStyle = '#fff';
     ctx.beginPath();
     ctx.arc(bx + BADGE_RADIUS, by + BADGE_RADIUS, BADGE_RADIUS, 0, Math.PI * 2);
     ctx.fill();
     
-    // Badge gradient
     const badgeGrad = ctx.createLinearGradient(bx, by, bx, by + BADGE_RADIUS * 2);
     badgeGrad.addColorStop(0, lightenColor(MULTIPLIER_COLORS[tile.multiplier], 15));
     badgeGrad.addColorStop(1, MULTIPLIER_COLORS[tile.multiplier]);
@@ -339,7 +548,6 @@ function drawBoard(canvas, boardLayout) {
     ctx.arc(bx + BADGE_RADIUS, by + BADGE_RADIUS, BADGE_RADIUS - 3, 0, Math.PI * 2);
     ctx.fill();
     
-    // Badge text
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 10px system-ui';
     ctx.textAlign = 'center';
@@ -362,53 +570,12 @@ function closeModal() {
   document.getElementById('boardModal').classList.remove('visible');
 }
 
-// Close on background click
 document.getElementById('boardModal').addEventListener('click', (e) => {
   if (e.target.id === 'boardModal') closeModal();
 });
 
-// Display results
-const content = document.getElementById('content');
-
-if (!boardResults.playerWords || boardResults.playerWords.length === 0) {
-  content.innerHTML = '<div class="empty-message">No game data available. Play a game first!</div>';
-} else {
-  // Sort and get top 10
-  const topPlayerWords = [...boardResults.playerWords]
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 10);
-  
-  // Build HTML
-  let html = '<div class="top-words-section">';
-  html += '<div class="column-title">Your Top 10 Words</div>';
-  topPlayerWords.forEach((item, index) => {
-    html += `
-      <div class="word-item">
-        <span class="word-rank">${index + 1}.</span>
-        <span class="word-text">${item.word}</span>
-        <span class="word-score">${item.score}</span>
-      </div>
-    `;
-  });
-  html += '</div>';
-  
-  // Final board preview
-  if (boardResults.finalBoard) {
-    html += '<div class="board-preview-section">';
-    html += '<div class="board-preview-title">Final Board</div>';
-    html += '<canvas id="boardThumbnail" class="board-thumbnail" onclick="showFullBoard()" width="' + BOARD_WIDTH + '" height="' + BOARD_HEIGHT + '"></canvas>';
-    html += '<div class="click-hint">Click to enlarge</div>';
-    html += '</div>';
-  }
-  
-  content.innerHTML = html;
-  
-  // Draw thumbnail
-  if (boardResults.finalBoard) {
-    const thumbnail = document.getElementById('boardThumbnail');
-    drawBoard(thumbnail, boardResults.finalBoard);
-  }
-}
+// Start analysis when page loads
+analyzeBoardsAndDisplay();
   </script>
 </body>
 </html>

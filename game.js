@@ -93,8 +93,16 @@ function playBonusSound() {
 // =============================================================================
 
 function saveCurrentBoardResult() {
-  // Don't save anything during gameplay to avoid ANY freeze
-  // All saving happens at game end in saveFinalGameResults()
+  // Save board state for solver to analyze later on results page
+  // This is just copying data - no heavy computation, no freeze
+  const boardSnapshot = board.map(tile => ({
+    letter: tile.letter,
+    multiplier: tile.multiplier,
+    row: tile.row,
+    col: tile.col
+  }));
+  
+  boardResults.boardStates.push(boardSnapshot);
 }
 
 function saveFinalGameResults() {
@@ -226,7 +234,7 @@ const BONUS_THRESHOLD = 3;
 const BONUS_TIME = 30;
 
 /** Board tracking for results page */
-let boardResults = { playerWords: [], bestWords: [], finalBoard: null };
+let boardResults = { playerWords: [], boardStates: [], finalBoard: null };
 let currentBoardBest = { word: '', score: 0 };
 
 /** @type {Set<string>|null} Dictionary loaded from words.txt.gz */
@@ -422,15 +430,12 @@ function processWordSubmission(path) {
   foundWords.add(word);
   
   const wordScore = calculateWordScore(path, board);
-  
-  // Track this word for the results page
-  trackWord(word, wordScore);
-  
   const newTotal = totalScore + wordScore;
   
   if (newTotal === TARGET_SCORE) {
-    // Solved - increment boards, reset score (same board, words stay blocked)
-    // NO saving during gameplay to avoid freeze
+    // Solved - track this helpful word!
+    trackWord(word, wordScore);
+    saveCurrentBoardResult();
     boardsSolved++;
     resetBoardTracking();
     totalScore = 0;
@@ -438,19 +443,20 @@ function processWordSubmission(path) {
     if (gotBonus) timeRemaining += BONUS_TIME;
     return { result: 'solved', word, wordScore, boardsSolved, gotBonus };
   } else if (newTotal === TRAP_SCORE) {
-    // Trap - reset score (same board, words stay blocked)
-    // NO saving during gameplay to avoid freeze
+    // Trap - DON'T track, this didn't help!
+    saveCurrentBoardResult();
     resetBoardTracking();
     totalScore = 0;
     return { result: 'trap', word, wordScore, newTotal, boardsSolved };
   } else if (newTotal > TARGET_SCORE) {
-    // Overshoot - reset score (same board, words stay blocked)
-    // NO saving during gameplay to avoid freeze
+    // Overshoot - DON'T track, this didn't help!
+    saveCurrentBoardResult();
     resetBoardTracking();
     totalScore = 0;
     return { result: 'overshoot', word, wordScore, newTotal, boardsSolved };
   } else {
-    // Normal valid word
+    // Normal valid word - track it!
+    trackWord(word, wordScore);
     totalScore = newTotal;
     return { result: 'valid', word, wordScore, totalScore };
   }
@@ -916,7 +922,7 @@ function startGame() {
   foundWords.clear();
   
   // Reset board tracking for new game
-  boardResults = { playerWords: [], bestWords: [], finalBoard: null };
+  boardResults = { playerWords: [], boardStates: [], finalBoard: null };
   currentBoardBest = { word: '', score: 0 };
   sessionStorage.removeItem('boardResults');
   
@@ -939,7 +945,7 @@ function resetGame() {
   foundWords.clear();
   
   // Reset board tracking
-  boardResults = { playerWords: [], bestWords: [], finalBoard: null };
+  boardResults = { playerWords: [], boardStates: [], finalBoard: null };
   currentBoardBest = { word: '', score: 0 };
   sessionStorage.removeItem('boardResults');
   
