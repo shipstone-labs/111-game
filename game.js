@@ -173,8 +173,8 @@ function findAllPaths(startIdx, currentPath, visited, allPaths) {
  * Find the best possible word on the current board (not 110 trap)
  * @returns {Object} { word: string, score: number }
  */
-function findBestPossibleWord() {
-  if (!dictionary || board.length === 0) {
+function findBestPossibleWord(boardTiles) {
+  if (!dictionary || !boardTiles || boardTiles.length === 0) {
     return { word: 'N/A', score: 0 };
   }
   
@@ -182,18 +182,18 @@ function findBestPossibleWord() {
   let bestScore = 0;
   
   // Try starting from each tile
-  for (let startIdx = 0; startIdx < board.length; startIdx++) {
+  for (let startIdx = 0; startIdx < boardTiles.length; startIdx++) {
     const allPaths = [];
     findAllPaths(startIdx, [startIdx], new Set([startIdx]), allPaths);
     
     // Check each path
     for (const path of allPaths) {
-      const word = path.map(i => board[i].letter).join('');
+      const word = path.map(i => boardTiles[i].letter).join('');
       
       // Skip if not a valid word
       if (!isValidWord(word)) continue;
       
-      const score = calculateWordScore(path, board);
+      const score = calculateWordScore(path, boardTiles);
       
       // Skip 110 traps
       if (score === TRAP_SCORE) continue;
@@ -207,6 +207,22 @@ function findBestPossibleWord() {
   }
   
   return { word: bestWord || 'N/A', score: bestScore };
+}
+
+function computeAllBestWords() {
+  // Compute best possible words from all saved board states
+  const bestWords = [];
+  
+  if (boardResults.boardStates && dictionary) {
+    for (const boardState of boardResults.boardStates) {
+      const result = findBestPossibleWord(boardState);
+      if (result.word !== 'N/A' && result.score > 0) {
+        bestWords.push(result);
+      }
+    }
+  }
+  
+  return bestWords;
 }
 
 // =============================================================================
@@ -888,6 +904,9 @@ function endGameTimeout() {
   
   // Save final board layout
   saveFinalBoardLayout();
+  
+  // Compute best possible words from all boards (runs after game ends, delay is fine)
+  boardResults.bestWords = computeAllBestWords();
   
   // Save all game results NOW (only time we save to sessionStorage)
   saveFinalGameResults();
