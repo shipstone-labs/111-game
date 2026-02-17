@@ -226,19 +226,57 @@ function findBestPossibleWord(boardTiles) {
 }
 
 function computeAllBestWords() {
-  // Compute best possible words from all saved board states
-  const bestWords = [];
+  // Find ALL helpful words from all boards, then take top 10
+  const allBestWords = [];
   
   if (boardResults.boardStates && dictionary) {
     for (const boardState of boardResults.boardStates) {
-      const result = findBestPossibleWord(boardState);
-      if (result.word !== 'N/A' && result.score > 0) {
-        bestWords.push(result);
-      }
+      // Find ALL helpful words on this board (not just the single best)
+      const boardWords = findAllHelpfulWords(boardState);
+      allBestWords.push(...boardWords);
     }
   }
   
-  return bestWords;
+  // Sort by score and return top 10
+  return allBestWords
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
+}
+
+function findAllHelpfulWords(boardTiles) {
+  // Find ALL words that could help (score ≤ 111, not 110)
+  if (!dictionary || !boardTiles || boardTiles.length === 0) {
+    return [];
+  }
+  
+  const helpfulWords = [];
+  const seenWords = new Set(); // Avoid duplicates
+  
+  // Try starting from each tile
+  for (let startIdx = 0; startIdx < boardTiles.length; startIdx++) {
+    const allPaths = [];
+    findAllPaths(startIdx, [startIdx], new Set([startIdx]), allPaths);
+    
+    // Check each path
+    for (const path of allPaths) {
+      const word = path.map(i => boardTiles[i].letter).join('');
+      
+      // Skip if we've seen this word or if not valid
+      if (seenWords.has(word)) continue;
+      if (!isValidWord(word)) continue;
+      
+      const score = calculateWordScore(path, boardTiles);
+      
+      // Only keep helpful words
+      if (score === TRAP_SCORE) continue; // Skip 110 traps
+      if (score > TARGET_SCORE) continue; // Skip overshoots (112+)
+      
+      helpfulWords.push({ word, score });
+      seenWords.add(word);
+    }
+  }
+  
+  return helpfulWords;
 }
 
 // =============================================================================

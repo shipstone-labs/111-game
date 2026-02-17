@@ -41,6 +41,13 @@
       margin-bottom: 50px;
     }
     
+    @media (max-width: 600px) {
+      .top-words-section {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+    }
+    
     .words-column {
       background: rgba(255, 255, 255, 0.05);
       border-radius: 12px;
@@ -66,32 +73,41 @@
     
     .word-item {
       display: flex;
-      justify-content: space-between;
       align-items: center;
       padding: 14px 12px;
       margin-bottom: 10px;
       background: rgba(255, 255, 255, 0.03);
       border-radius: 8px;
+      gap: 8px;
     }
     
     .word-rank {
       font-size: 14px;
       color: #666;
-      width: 30px;
       flex-shrink: 0;
+      min-width: 28px;
     }
     
     .word-text {
-      flex: 1;
       font-size: 18px;
       font-weight: bold;
-      padding: 0 12px;
+      flex-shrink: 0;
+    }
+    
+    .word-spacer {
+      flex: 1;
+      border-bottom: 2px dotted rgba(255, 255, 255, 0.1);
+      margin: 0 8px;
+      min-width: 20px;
     }
     
     .word-score {
-      font-size: 16px;
+      font-size: 18px;
       color: #4a9eda;
+      font-weight: bold;
       flex-shrink: 0;
+      min-width: 40px;
+      text-align: right;
     }
     
     .board-preview-section {
@@ -390,6 +406,7 @@ if (!boardResults.playerWords || boardResults.playerWords.length === 0) {
       <div class="word-item">
         <span class="word-rank">${index + 1}.</span>
         <span class="word-text">${item.word}</span>
+        <div class="word-spacer"></div>
         <span class="word-score">${item.score}</span>
       </div>
     `;
@@ -405,6 +422,7 @@ if (!boardResults.playerWords || boardResults.playerWords.length === 0) {
         <div class="word-item">
           <span class="word-rank">${index + 1}.</span>
           <span class="word-text">${item.word}</span>
+          <div class="word-spacer"></div>
           <span class="word-score">${item.score}</span>
         </div>
       `;
