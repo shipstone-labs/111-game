@@ -164,8 +164,8 @@ function findAllPaths(startIdx, currentPath, visited, allPaths) {
     allPaths.push([...currentPath]);
   }
   
-  // Stop if path is too long (diminishing returns after ~12 letters)
-  if (currentPath.length >= 12) return;
+  // Stop if path is too long (limit to 9 for performance)
+  if (currentPath.length >= 9) return;
   
   // Try extending to each adjacent unvisited tile
   const neighbors = getNeighbors(startIdx);
@@ -959,12 +959,6 @@ function endGameTimeout() {
   // Save final board layout
   saveFinalBoardLayout();
   
-  // Compute best possible words from all boards (runs after game ends, delay is fine)
-  boardResults.bestWords = computeAllBestWords();
-  
-  // Save all game results NOW (only time we save to sessionStorage)
-  saveFinalGameResults();
-  
   // Clear any in-progress selection
   selectedPath = [];
   isDragging = false;
@@ -972,12 +966,22 @@ function endGameTimeout() {
   showFeedback(`Time's up! Boards: ${boardsSolved}`, 'timeout');
   startBtn.textContent = 'New Game';
   
-  // Show results button
-  if (resultsBtn) {
-    resultsBtn.classList.add('visible');
-  }
+  // Redraw to clear selection visuals and update UI immediately
+  draw();
   
-  draw(); // Redraw to clear selection visuals
+  // Run solver asynchronously after UI updates (prevents countdown stutter)
+  setTimeout(() => {
+    // Compute best possible words from all boards
+    boardResults.bestWords = computeAllBestWords();
+    
+    // Save all game results
+    saveFinalGameResults();
+    
+    // Show results button after solver completes
+    if (resultsBtn) {
+      resultsBtn.classList.add('visible');
+    }
+  }, 50); // 50ms delay lets UI update smoothly first
 }
 
 function startGame() {
