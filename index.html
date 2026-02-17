@@ -9,15 +9,16 @@
   <title>111</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-512.png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap">
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     body {
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: 'Nunito', system-ui, -apple-system, sans-serif;
       min-height: 100vh;
       min-height: 100dvh;
       display: flex;
@@ -27,21 +28,27 @@
       background: white;
       padding: 20px;
     }
-    
-    .logo-image {
-      width: 280px;
-      height: 280px;
-      margin-bottom: 60px;
+
+    .logo-number {
+      font-family: 'Nunito', sans-serif;
+      font-size: 140px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 4px;
+      color: #008E97;
+      -webkit-text-stroke: 14px #F26522;
+      paint-order: stroke fill;
+      margin-bottom: 30px;
     }
-    
+
     .tagline {
       font-size: 18px;
       color: black;
-      margin-bottom: 80px;
+      margin-bottom: 40px;
       text-align: center;
       max-width: 320px;
     }
-    
+
     .play-button {
       padding: 20px 60px;
       font-size: 32px;
@@ -54,7 +61,7 @@
       box-shadow: 0 6px 20px rgba(0, 142, 151, 0.4);
       transition: transform 0.2s, box-shadow 0.2s;
     }
-    
+
     .play-button:active {
       transform: scale(0.95);
       box-shadow: 0 4px 15px rgba(74, 158, 218, 0.3);
@@ -62,7 +69,7 @@
   </style>
 </head>
 <body>
-  <img src="icon-512.png" alt="111" class="logo-image">
+  <div class="logo-number">111</div>
   <div class="tagline">The task is to score exactly 111 points as many times as possible in 60 seconds. Words can only be used once. Players get 30 more seconds each time three 111s are completed.</div>
   <button class="play-button" onclick="window.location.href='game.html'">Start</button>
 </body>
