@@ -93,8 +93,7 @@ function playBonusSound() {
 // =============================================================================
 
 function saveCurrentBoardResult() {
-  // Save board state for solver to analyze later on results page
-  // This is just copying data - no heavy computation, no freeze
+  // Save board state ONLY if it's a unique board we haven't seen before
   const boardSnapshot = board.map(tile => ({
     letter: tile.letter,
     multiplier: tile.multiplier,
@@ -102,7 +101,19 @@ function saveCurrentBoardResult() {
     col: tile.col
   }));
   
-  boardResults.boardStates.push(boardSnapshot);
+  // Create a signature of this board to check if we've seen it before
+  const boardSignature = board.map(t => t.letter).join('');
+  
+  // Check if we already have this board
+  const alreadyExists = boardResults.boardStates.some(savedBoard => {
+    const savedSignature = savedBoard.map(t => t.letter).join('');
+    return savedSignature === boardSignature;
+  });
+  
+  // Only save if this is a new unique board
+  if (!alreadyExists) {
+    boardResults.boardStates.push(boardSnapshot);
+  }
 }
 
 function saveFinalGameResults() {
@@ -170,7 +181,8 @@ function findAllPaths(startIdx, currentPath, visited, allPaths) {
 }
 
 /**
- * Find the best possible word on the current board (not 110 trap)
+ * Find the best HELPFUL word on the current board
+ * Best = highest score that is ≤ 111 and ≠ 110 (no traps, no overshoots)
  * @returns {Object} { word: string, score: number }
  */
 function findBestPossibleWord(boardTiles) {
@@ -195,8 +207,12 @@ function findBestPossibleWord(boardTiles) {
       
       const score = calculateWordScore(path, boardTiles);
       
-      // Skip 110 traps
-      if (score === TRAP_SCORE) continue;
+      // ONLY track words that HELP:
+      // - Not 110 (trap)
+      // - Not 112+ (overshoot/bust)
+      // - Must be ≤ 111
+      if (score === TRAP_SCORE) continue; // Skip 110 traps
+      if (score > TARGET_SCORE) continue; // Skip overshoots (112+)
       
       // Update best if this is better
       if (score > bestScore) {
