@@ -2,7 +2,7 @@
   "name": "111 Game",
   "short_name": "111",
   "description": "111 Number Game",
-  "start_url": "/111-game/",
+  "start_url": "/111-game/?v5",
   "scope": "/111-game/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -10,13 +10,13 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/111-game/icon-192b.png",
+      "src": "/111-game/icon-192b-v5.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/111-game/icon-512.png",
+      "src": "/111-game/icon-512-v5.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
