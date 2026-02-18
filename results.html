@@ -148,7 +148,7 @@
     .back-button {
       display: block;
       width: 200px;
-      margin: 40px auto 0;
+      margin: 0 auto;
       padding: 16px 32px;
       font-size: 20px;
       font-weight: bold;
@@ -162,6 +162,33 @@
     }
     
     .back-button:active {
+      transform: scale(0.95);
+    }
+    
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      margin-top: 40px;
+    }
+    
+    .tips-button {
+      display: block;
+      width: 200px;
+      padding: 16px 32px;
+      font-size: 20px;
+      font-weight: bold;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+    }
+    
+    .tips-button:active {
       transform: scale(0.95);
     }
     
@@ -225,7 +252,10 @@
     
     <div id="content"></div>
     
-    <a href="game.html" class="back-button">Back to Game</a>
+    <div class="button-container">
+      <a href="tips.html" class="tips-button">Strategy Tips</a>
+      <a href="game.html" class="back-button">Back to Game</a>
+    </div>
   </div>
 
   <div id="boardModal" class="modal">
