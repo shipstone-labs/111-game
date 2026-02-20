@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="theme-color" content="#ffffff">
   <title>111</title>
   <link rel="manifest" href="manifest.json">
@@ -12,61 +12,66 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700;900&display=swap">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    
     body {
       font-family: 'Lexend', sans-serif;
-      min-height: 100vh;
+      height: 100vh;
+      height: 100dvh;
       background: white;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      /* This padding moves the logo down from the very top edge */
+      padding: 15vh 20px 10vh 20px; 
     }
-    .content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 40px;
-      flex-grow: 1;
-      justify-content: center;
-    }
+    
     .logo {
       width: 280px;
-      max-width: 80vw;
+      max-width: 75vw;
       height: auto;
-      border-radius: 50%;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      /* This ensures the logo stays in the upper section */
+      margin-bottom: 40px; 
     }
+    
     .tagline {
-      font-size: 18px;
-      line-height: 1.6;
-      color: #333;
+      font-size: 19px;
+      line-height: 1.5;
+      color: #000;
       text-align: center;
-      max-width: 320px;
+      max-width: 340px;
+      font-weight: 500;
+      /* This pushes the button further down away from the text */
+      margin-bottom: auto; 
     }
+    
     .start-button {
-      padding: 18px 80px;
-      font-size: 28px;
-      font-weight: 900;
+      padding: 16px 80px;
+      font-size: 32px;
+      font-weight: 700;
       background: #008E97;
       color: #fff;
       border: none;
-      border-radius: 50px;
+      border-radius: 60px;
       cursor: pointer;
-      box-shadow: 0 8px 25px rgba(0, 142, 151, 0.3);
+      box-shadow: 0 10px 25px rgba(0, 142, 151, 0.2);
+      /* Keeps the button toward the bottom */
+      margin-top: 20px; 
     }
-    .start-button:active { transform: scale(0.96); }
+
+    .start-button:active {
+      transform: scale(0.95);
+    }
   </style>
 </head>
 <body>
-  <div class="content">
+
     <img src="icon-1024.png" alt="111" class="logo">
+    
     <div class="tagline">
-      Score exactly <strong>111</strong> points as many times as possible. 
-      <br><br>
-      Gain 30 seconds for every three 111s completed.
+      The task is to score exactly 111 points as many times as possible in 60 seconds. Words can only be used once. Players get 30 more seconds each time three 111s are completed.
     </div>
-    <button class="start-button" onclick="window.location.href='game.html'">START</button>
-  </div>
+    
+    <button class="start-button" onclick="window.location.href='game.html'">Start</button>
+
 </body>
 </html>
-    
