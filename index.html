@@ -40,9 +40,12 @@
     }
     
     .logo {
-      width: 400px;
+      width: 500px;
       max-width: 90vw;
       height: auto;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      -ms-interpolation-mode: nearest-neighbor;
     }
     
     .tagline {
@@ -80,7 +83,7 @@
   <div class="top-spacer"></div>
   
   <div class="content">
-    <img src="landing-logo.png" alt="111" class="logo">
+    <img src="landing-logo-SHARP.png" alt="111" class="logo">
     <div class="tagline">The task is to score exactly 111 points as many times as possible in 60 seconds. Words can only be used once. Players get 30 more seconds each time three 111s are completed.</div>
     <button class="start-button" onclick="window.location.href='game.html'">Start</button>
   </div>
