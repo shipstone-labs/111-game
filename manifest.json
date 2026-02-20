@@ -1,19 +1,19 @@
 {
-"name": "111 Game",
-"short_name": "111",
-"description": "The 111 Word & Math Game",
-"start_url": "/111-game/",
-"scope": "/111-game/",
-"display": "standalone",
-"background_color": "#ffffff",
-"theme_color": "#008E97",
-"orientation": "portrait",
-"icons": [
-{
-"src": "icon-1024.png",
-"sizes": "1024x1024",
-"type": "image/png",
-"purpose": "any"
-}
-]
+  "name": "111 Game",
+  "short_name": "111",
+  "description": "The 111 Word & Math Game",
+  "start_url": "/111-game/",
+  "scope": "/111-game/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#008E97",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
