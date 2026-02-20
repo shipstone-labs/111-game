@@ -5,86 +5,68 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#1a1a2e">
+  <meta name="theme-color" content="#ffffff">
   <title>111</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-512.png">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap">
+  <link rel="apple-touch-icon" href="icon-1024.png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700;900&display=swap">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+      font-family: 'Lexend', sans-serif;
       min-height: 100vh;
-      min-height: 100dvh;
       background: white;
       display: flex;
       flex-direction: column;
+      align-items: center;
       padding: 20px;
     }
-    
-    .top-spacer {
-      height: 18vh;
-      flex-shrink: 0;
-    }
-    
     .content {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 30px;
+      gap: 40px;
+      flex-grow: 1;
+      justify-content: center;
     }
-    
     .logo {
-      width: 400px;
-      max-width: 90vw;
+      width: 280px;
+      max-width: 80vw;
       height: auto;
+      border-radius: 50%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     }
-    
     .tagline {
       font-size: 18px;
-      color: black;
+      line-height: 1.6;
+      color: #333;
       text-align: center;
       max-width: 320px;
     }
-    
     .start-button {
-      padding: 20px 60px;
-      font-size: 32px;
-      font-weight: bold;
+      padding: 18px 80px;
+      font-size: 28px;
+      font-weight: 900;
       background: #008E97;
       color: #fff;
       border: none;
       border-radius: 50px;
       cursor: pointer;
-      box-shadow: 0 6px 20px rgba(0, 142, 151, 0.4);
-      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 8px 25px rgba(0, 142, 151, 0.3);
     }
-    
-    .start-button:active {
-      transform: scale(0.95);
-      box-shadow: 0 4px 15px rgba(0, 142, 151, 0.3);
-    }
-    
-    .bottom-spacer {
-      flex-grow: 1;
-      min-height: 25vh;
-    }
+    .start-button:active { transform: scale(0.96); }
   </style>
 </head>
 <body>
-  <div class="top-spacer"></div>
-  
   <div class="content">
-    <img src="landing-logo-SHARP.png" alt="111" class="logo">
-    <div class="tagline">The task is to score exactly 111 points as many times as possible in 60 seconds. Words can only be used once. Players get 30 more seconds each time three 111s are completed.</div>
-    <button class="start-button" onclick="window.location.href='game.html'">Start</button>
+    <img src="icon-1024.png" alt="111" class="logo">
+    <div class="tagline">
+      Score exactly <strong>111</strong> points as many times as possible. 
+      <br><br>
+      Gain 30 seconds for every three 111s completed.
+    </div>
+    <button class="start-button" onclick="window.location.href='game.html'">START</button>
   </div>
-  
-  <div class="bottom-spacer"></div>
 </body>
 </html>
+    
