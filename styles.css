@@ -1,18 +1,14 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Lexend', sans-serif;
   min-height: 100vh;
-  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-  padding: 4px;
+  background: #1a1a2e;
+  padding: 10px;
   touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
   overflow: hidden;
 }
 
@@ -20,7 +16,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
+  width: 100%;
+  max-width: 500px;
 }
 
 .header {
@@ -28,196 +26,55 @@ body {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: 0 8px;
-}
-
-.boards {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 120px;
-  justify-content: flex-start;
+  padding: 10px 5px;
 }
 
 .boards-icon {
-  width: 40px;
-  height: 40px;
-  background: #4CAF50;
+  width: 36px;
+  height: 36px;
+  background: #008E97;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 24px;
   font-weight: bold;
 }
 
 .boards-value {
-  color: #4CAF50;
-  font-size: 29px;
-  font-weight: bold;
-}
-
-.boards.winner {
-  animation: pulse 0.5s ease-in-out;
-}
-.score {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 4px;
-  min-width: 120px;
-  flex: 1;
+  color: #008E97;
+  font-size: 28px;
+  font-weight: 900;
 }
 
 .score-value {
   color: #fff;
   font-size: 48px;
-  font-weight: bold;
-  font-variant-numeric: tabular-nums;
-}
-
-.score-sep {
-  color: #444;
-  font-size: 27px;
-  font-weight: bold;
+  font-weight: 900;
 }
 
 .score-target {
-  color: #666;
+  color: #008E97;
   font-size: 24px;
-  font-weight: 600;
 }
 
 .timer {
   color: #4a9eda;
-  font-size: 53px;
-  font-weight: bold;
-  font-variant-numeric: tabular-nums;
-  min-width: 120px;
-  text-align: right;
+  font-size: 48px;
+  font-weight: 900;
 }
 
-.timer.warning {
-  color: #FF9800;
-}
-
-.timer.critical {
-  color: #F44336;
-  animation: pulse 0.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
-
-.start-btn {
-  padding: 9px 18px;
-  font-size: 24px;
-  font-weight: bold;
-  background: #4a9eda;
-  color: #fff;
-  border: none;
-  border-radius: 36px;
-  cursor: pointer;
-}
-
-.button-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin-top: 10px;
-}
-.start-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.timer.critical { color: #F44336; }
 
 canvas {
-  border-radius: 12px;
-  touch-action: none;
+  border-radius: 16px;
+  background: #16213e;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
-
-.word-area {
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 
 .word-pill {
-  padding: 8px 20px;
-  border-radius: 24px;
-  font-size: 18px;
-  font-weight: bold;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-.word-pill.visible {
-  opacity: 1;
-}
-
-.word-pill.valid {
-  background: #4CAF50;
-  color: #fff;
-}
-
-.word-pill.invalid {
-  background: #F44336;
-  color: #fff;
-}
-
-.word-pill.duplicate {
-  background: #FF9800;
-  color: #fff;
-}
-
-.word-pill.trap {
-  background: #F44336;
-  color: #fff;
-  animation: shake 0.5s ease-in-out;
-}
-
-.word-pill.overshoot {
-  background: #F44336;
-  color: #fff;
-  animation: shake 0.5s ease-in-out;
-}
-
-.word-pill.win {
-  background: linear-gradient(135deg, #4CAF50, #8BC34A);
-  color: #fff;
-  animation: pulse 0.5s ease-in-out;
-}
-
-.word-pill.solved {
-  background: linear-gradient(135deg, #4CAF50, #8BC34A);
-  color: #fff;
-  animation: pulse 0.5s ease-in-out;
-}
-
-.word-pill.bonus {
-  background: linear-gradient(135deg, #FF9800, #FFC107);
-  color: #fff;
-  animation: pulse 0.5s ease-in-out;
-}
-
-.word-pill.timeout {
-  background: #FF9800;
-  color: #fff;
-}
-
-.word-pill.selecting {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
+  padding: 10px 25px;
+  border-radius: 30px;
+  font-size: 20px;
+  font-weight: 800;
 }
