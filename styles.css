@@ -1,5 +1,4 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
 body {
   font-family: 'Lexend', sans-serif;
   min-height: 100vh;
@@ -11,7 +10,6 @@ body {
   touch-action: none;
   overflow: hidden;
 }
-
 .game-container {
   display: flex;
   flex-direction: column;
@@ -20,7 +18,6 @@ body {
   width: 100%;
   max-width: 500px;
 }
-
 .header {
   display: flex;
   justify-content: space-between;
@@ -28,7 +25,6 @@ body {
   width: 100%;
   padding: 10px 5px;
 }
-
 .boards-icon {
   width: 36px;
   height: 36px;
@@ -40,41 +36,35 @@ body {
   color: #fff;
   font-weight: bold;
 }
-
 .boards-value {
   color: #008E97;
   font-size: 28px;
   font-weight: 900;
 }
-
 .score-value {
   color: #fff;
   font-size: 48px;
   font-weight: 900;
 }
-
 .score-target {
   color: #008E97;
   font-size: 24px;
 }
-
 .timer {
   color: #4a9eda;
   font-size: 48px;
   font-weight: 900;
 }
-
 .timer.critical { color: #F44336; }
-
 canvas {
   border-radius: 16px;
   background: #16213e;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
-
 .word-pill {
   padding: 10px 25px;
   border-radius: 30px;
   font-size: 20px;
   font-weight: 800;
+  color: #ffffff;
 }
