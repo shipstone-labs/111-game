@@ -11,6 +11,35 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="apple-touch-icon" href="icon-512.png">
   <style>
+    /* Play / New Game button */
+    .start-btn {
+      margin-top: 16px;
+      padding: 18px 48px;
+      font-size: 22px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: #008E97;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      width: 100%;
+      max-width: 300px;
+      box-shadow: 0 6px 20px rgba(0, 142, 151, 0.45);
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+
+    .start-btn:hover {
+      background: #00a8b3;
+      box-shadow: 0 8px 24px rgba(0, 142, 151, 0.6);
+    }
+
+    .start-btn:active {
+      transform: scale(0.95);
+      box-shadow: 0 3px 10px rgba(0, 142, 151, 0.3);
+    }
+
     /* Results button styling */
     #resultsBtn {
       margin-top: 16px;
@@ -86,10 +115,8 @@
     const resultsBtn = document.getElementById('resultsBtn');
     const startBtn = document.getElementById('startBtn');
     
-    // Show results button when game ends
-    const originalStartBtnClick = startBtn.onclick;
+    // Hide results button when starting new game
     startBtn.addEventListener('click', function() {
-      // Hide results button when starting new game
       if (startBtn.textContent === 'Play' || startBtn.textContent === 'New Game') {
         resultsBtn.classList.remove('visible');
       }
