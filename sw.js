@@ -1,34 +1,20 @@
-const CACHE_NAME = '111-v-final-fix';
-const ASSETS = [
-  './',
-  'index.html',
-  'game.html',
-  'manifest.json',
-  'sw.js',
-  'icon-1024.png'
-];
+/* sw.js — THE BYPASS VERSION */
+const VERSION = 'restore-v3';
 
-// Force immediate update
-self.addEventListener('install', (event) => {
+self.addEventListener('install', (e) => {
   self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
     caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      );
+      return Promise.all(keys.map((key) => caches.delete(key)));
     })
   );
   self.clients.claim();
 });
 
+// The "Pass-Through": Just go to the network for everything
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
-  );
+  event.respondWith(fetch(event.request));
 });
