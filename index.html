@@ -6,13 +6,20 @@
   <title>111</title>
   <link rel="manifest" href="manifest.json">
   <script>
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+    // This reinforced script forces Chrome to see the app status
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('App Ready'))
+          .catch(err => console.log('Registration failed'));
+      });
+    }
   </script>
 </head>
 <body style="background:white; text-align:center; padding:0; margin:0; font-family:sans-serif; display:flex; flex-direction:column; align-items:center;">
 
-  <div style="margin-top: 30px; margin-bottom: -90px;"> 
-    <img src="icon-1024.png" style="width:400px; max-width:98vw; height:auto; display:block; margin:0 auto;">
+  <div style="margin-top: 30px; margin-bottom: -75px;"> 
+    <img src="icon-1024.png" style="width:380px; max-width:98vw; height:auto; display:block; margin:0 auto;">
   </div>
 
   <div style="padding: 0 25px;">
