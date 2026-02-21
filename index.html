@@ -1,26 +1,20 @@
+
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>111</title>
-  <link rel="manifest" href="./manifest.json">
+  <link rel="manifest" href="manifest.json">
   <script>
-    // Forceful registration to ensure the "Install" prompt returns
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js').then(function(reg) {
-          console.log('ServiceWorker registered');
-        }).catch(function(err) {
-          console.log('ServiceWorker failed', err);
-        });
-      });
+      navigator.serviceWorker.register('sw.js');
     }
   </script>
 </head>
 <body style="background:white; text-align:center; padding:0; margin:0; font-family:sans-serif; display:flex; flex-direction:column; align-items:center;">
 
-  <div style="margin-top: 30px; margin-bottom: -75px;"> 
+  <div style="margin-top: 35px; margin-bottom: -70px;"> 
     <img src="icon-1024.png" style="width:380px; max-width:98vw; height:auto; display:block; margin:0 auto;">
   </div>
 
@@ -30,7 +24,7 @@
     </p>
   </div>
 
-  <button onclick="window.location.href='game.html'" style="background:#008E97; color:white; padding:16px 80px; font-size:32px; border:none; border-radius:100px; font-weight:bold; box-shadow: 0 6px 20px rgba(0, 142, 151, 0.3); cursor:pointer;">
+  <button onclick="window.location.href='game.html'" style="background:#008E97; color:white; padding:18px 80px; font-size:32px; border:none; border-radius:100px; font-weight:bold; cursor:pointer;">
     Start
   </button>
 
