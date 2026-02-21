@@ -9,21 +9,20 @@
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
   </script>
 </head>
-<body style="background:white; text-align:center; padding:0; margin:0; font-family:sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh;">
+<body style="background:white; text-align:center; padding:0; margin:0; font-family:sans-serif; display:flex; flex-direction:column; align-items:center;">
 
-  <div style="margin-bottom: -50px;"> 
+  <div style="margin-top: 30px; margin-bottom: -50px;"> 
     <img src="icon-1024.png" style="width:300px; max-width:90vw; height:auto; display:block; margin:0 auto;">
   </div>
 
-  <div style="padding: 0 30px;">
-    <p style="font-size:18px; line-height:1.4; color:black; max-width:320px; margin:35px auto; font-weight:500;">
+  <div style="padding: 0 25px;">
+    <p style="font-size:18px; line-height:1.4; color:black; max-width:320px; margin:40px auto; font-weight:500;">
       The task is to score exactly 111 points as many times as possible in 60 seconds. Words can only be used once. Players get 30 more seconds each time three 111s are completed.
     </p>
   </div>
 
-  <button onclick="window.location.href='game.html'" style="background:#008E97; color:white; padding:16px 80px; font-size:32px; border:none; border-radius:100px; font-weight:bold; box-shadow: 0 6px 20px rgba(0, 142, 151, 0.3); cursor:pointer;">
+  <button onclick="window.location.href='game.html'" style="background:#008E97; color:white; padding:16px 80px; font-size:32px; border:none; border-radius:100px; font-weight:bold; box-shadow: 0 6px 20px rgba(0, 142, 151, 0.3); cursor:pointer; -webkit-tap-highlight-color:transparent;">
     Start
   </button>
 
 </body>
-</html>
