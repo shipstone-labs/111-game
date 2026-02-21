@@ -5,7 +5,7 @@
    - Immediately activate new SW and delete old caches
 */
 
-const CACHE_VERSION = "v20260218-1";
+const CACHE_VERSION = "v20260220-final-restore";
 const STATIC_CACHE = `111-static-${CACHE_VERSION}`;
 
 // File types we NEVER want to serve from cache (these cause "unchanged" launch page / icons)
