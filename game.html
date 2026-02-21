@@ -103,31 +103,13 @@
     </div>
   </div>
   <script src="game.js"></script>
-  
+
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/111-game/sw.js')
-        .then(reg => console.log('Service Worker registered'))
-        .catch(err => console.log('Service Worker registration failed:', err));
+        .then(reg => console.log('SW registered'))
+        .catch(err => console.log('SW failed:', err));
     }
-    
-    // Show/hide results button based on game state
-    const resultsBtn = document.getElementById('resultsBtn');
-    const startBtn = document.getElementById('startBtn');
-    
-    // Hide results button when starting new game
-    startBtn.addEventListener('click', function() {
-      if (startBtn.textContent === 'Play' || startBtn.textContent === 'New Game') {
-        resultsBtn.classList.remove('visible');
-      }
-    });
-    
-    // Watch for game timeout to show results button
-    setInterval(() => {
-      if (startBtn.textContent === 'New Game') {
-        resultsBtn.classList.add('visible');
-      }
-    }, 500);
   </script>
 </body>
 </html>
