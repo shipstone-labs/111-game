@@ -782,8 +782,13 @@ function endGameTimeout() {
   startBtn.textContent = 'New Game';
   draw();
   setTimeout(() => {
-    boardResults.bestWords = computeAllBestWords();
-    saveFinalGameResults();
+    try {
+      boardResults.bestWords = computeAllBestWords();
+      saveFinalGameResults();
+    } catch(e) {
+      console.error('Solver error:', e);
+    }
+    // Always show results button regardless of whether solver succeeded
     if (resultsBtn) {
       resultsBtn.classList.add('visible');
     }
