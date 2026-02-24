@@ -8,7 +8,7 @@ body {
   background: #1a1a2e;
   padding: 10px;
   touch-action: none;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 .game-container {
   display: flex;
