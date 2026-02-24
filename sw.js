@@ -1,10 +1,8 @@
 /* sw.js — THE BYPASS VERSION */
-const VERSION = 'restore-v3';
-
+const VERSION = 'restore-v4';
 self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
-
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -13,7 +11,6 @@ self.addEventListener('activate', (e) => {
   );
   self.clients.claim();
 });
-
 // The "Pass-Through": Just go to the network for everything
 self.addEventListener('fetch', (event) => {
   event.respondWith(fetch(event.request));
