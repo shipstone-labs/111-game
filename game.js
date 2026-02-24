@@ -791,6 +791,7 @@ function endGameTimeout() {
     // Always show results button regardless of whether solver succeeded
     if (resultsBtn) {
       resultsBtn.classList.add('visible');
+      resultsBtn.style.display = 'block';
     }
   }, 50);
 }
