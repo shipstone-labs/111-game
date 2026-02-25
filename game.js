@@ -775,6 +775,7 @@ function stopTimer() {
 function endGameTimeout() {
   gameState = 'timeout';
   saveFinalBoardLayout();
+  saveCurrentBoardResult(); // Ensure final active board is analyzed
   selectedPath = [];
   isDragging = false;
   currentPos = null;
@@ -816,6 +817,7 @@ function startGame() {
 }
 
 function resetGame() {
+  saveCurrentBoardResult(); // Save board before resetting
   totalScore = 0;
   boardsSolved = 0;
   foundWords.clear();
