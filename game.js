@@ -817,21 +817,25 @@ function startGame() {
 }
 
 function resetGame() {
-  saveCurrentBoardResult(); // Save board before resetting
-  totalScore = 0;
-  boardsSolved = 0;
-  foundWords.clear();
-  boardResults = { playerWords: [], boardStates: [], finalBoard: null };
-  currentBoardBest = { word: '', score: 0 };
-  sessionStorage.removeItem('boardResults');
-  board = generateValidBoard();
-  gameState = 'playing';
-  updateScore();
-  if (resultsBtn) {
-    resultsBtn.classList.remove('visible');
-  }
-  startTimer();
+  saveCurrentBoardResult(); // Save board before ending
+  stopTimer();
+  gameState = 'timeout';
+  saveFinalBoardLayout();
+  showFeedback(`Reset! Boards: ${boardsSolved}`, 'timeout');
+  startBtn.textContent = 'New Game';
   draw();
+  setTimeout(() => {
+    try {
+      boardResults.bestWords = computeAllBestWords();
+      saveFinalGameResults();
+    } catch(e) {
+      console.error('Solver error:', e);
+    }
+    if (resultsBtn) {
+      resultsBtn.classList.add('visible');
+      resultsBtn.style.display = 'block';
+    }
+  }, 50);
 }
 
 // =============================================================================
