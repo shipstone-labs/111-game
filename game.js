@@ -811,16 +811,22 @@ function startGame() {
   startBtn.textContent = 'Reset';
   if (resultsBtn) {
     resultsBtn.classList.remove('visible');
+    resultsBtn.style.display = 'none';
   }
   startTimer();
   draw();
 }
 
 function resetGame() {
-  saveCurrentBoardResult(); // Save board before ending
+  saveCurrentBoardResult();
   stopTimer();
   gameState = 'timeout';
   saveFinalBoardLayout();
+  // Hide results button immediately, show only after solver completes
+  if (resultsBtn) {
+    resultsBtn.classList.remove('visible');
+    resultsBtn.style.display = 'none';
+  }
   showFeedback(`Reset! Boards: ${boardsSolved}`, 'timeout');
   startBtn.textContent = 'New Game';
   draw();
