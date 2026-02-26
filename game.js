@@ -818,30 +818,24 @@ function startGame() {
 }
 
 function resetGame() {
-  saveCurrentBoardResult();
+  saveCurrentBoardResult(); // Save board for results analysis
   stopTimer();
-  gameState = 'timeout';
-  saveFinalBoardLayout();
-  // Hide results button immediately, show only after solver completes
+  totalScore = 0;
+  boardsSolved = 0;
+  foundWords.clear();
+  boardResults = { playerWords: [], boardStates: [], finalBoard: null };
+  currentBoardBest = { word: '', score: 0 };
+  sessionStorage.removeItem('boardResults');
+  board = generateValidBoard();
+  gameState = 'playing';
+  updateScore();
   if (resultsBtn) {
     resultsBtn.classList.remove('visible');
     resultsBtn.style.display = 'none';
   }
-  showFeedback(`Reset! Boards: ${boardsSolved}`, 'timeout');
-  startBtn.textContent = 'New Game';
+  startBtn.textContent = 'Reset';
+  startTimer();
   draw();
-  setTimeout(() => {
-    try {
-      boardResults.bestWords = computeAllBestWords();
-      saveFinalGameResults();
-    } catch(e) {
-      console.error('Solver error:', e);
-    }
-    if (resultsBtn) {
-      resultsBtn.classList.add('visible');
-      resultsBtn.style.display = 'block';
-    }
-  }, 50);
 }
 
 // =============================================================================
