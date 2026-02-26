@@ -6,12 +6,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#1a1a2e">
-  <title>111</title>
+  <title>37</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
   <link rel="apple-touch-icon" href="icon-512.png">
   <style>
-    /* Play / New Game button */
     .start-btn {
       margin-top: 16px;
       padding: 18px 48px;
@@ -29,18 +28,8 @@
       box-shadow: 0 6px 20px rgba(0, 142, 151, 0.45);
       transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
     }
-
-    .start-btn:hover {
-      background: #00a8b3;
-      box-shadow: 0 8px 24px rgba(0, 142, 151, 0.6);
-    }
-
-    .start-btn:active {
-      transform: scale(0.95);
-      box-shadow: 0 3px 10px rgba(0, 142, 151, 0.3);
-    }
-
-    /* Results button styling */
+    .start-btn:hover { background: #00a8b3; box-shadow: 0 8px 24px rgba(0,142,151,0.6); }
+    .start-btn:active { transform: scale(0.95); box-shadow: 0 3px 10px rgba(0,142,151,0.3); }
     #resultsBtn {
       margin-top: 16px;
       padding: 16px 32px;
@@ -54,19 +43,12 @@
       width: 100%;
       max-width: 300px;
       display: none;
-      box-shadow: 0 4px 12px rgba(0, 142, 151, 0.3);
+      box-shadow: 0 4px 12px rgba(0,142,151,0.3);
       transition: transform 0.2s, box-shadow 0.2s;
     }
-    
-    #resultsBtn.visible {
-      display: block;
-    }
-    
-    #resultsBtn:active {
-      transform: scale(0.95);
-    }
-    
-    /* Make button container stack buttons vertically */
+    #resultsBtn.visible { display: block; }
+    #resultsBtn:hover { background: #00a8b3; }
+    #resultsBtn:active { transform: scale(0.95); }
     .button-container {
       display: flex;
       flex-direction: column;
@@ -85,7 +67,7 @@
       <div class="score">
         <span class="score-value" id="scoreValue">0</span>
         <span class="score-sep">/</span>
-        <span class="score-target">111</span>
+        <span class="score-target">37</span>
       </div>
       <div class="timer" id="timer">60</div>
     </div>
@@ -103,7 +85,6 @@
     </div>
   </div>
   <script src="game.js"></script>
-
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/111-game/sw.js')
