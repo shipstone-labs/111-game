@@ -1,5 +1,5 @@
 /* sw.js — THE BYPASS VERSION */
-const VERSION = 'restore-v4';
+const VERSION = 'restore-v5';
 self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
