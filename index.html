@@ -1,28 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>37</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1a1a2e">
+  <title>111</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+      padding: 24px;
+      user-select: none;
+      color: white;
+      text-align: center;
+    }
+
+    .logo {
+      width: 180px;
+      height: 180px;
+      border-radius: 40px;
+      margin-bottom: 32px;
+    }
+
+    .description {
+      font-size: 20px;
+      line-height: 1.6;
+      color: #ccc;
+      max-width: 320px;
+      margin-bottom: 40px;
+    }
+
+    .start-btn {
+      padding: 18px 64px;
+      font-size: 24px;
+      font-weight: bold;
+      background: #008E97;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0, 142, 151, 0.45);
+      text-decoration: none;
+      display: inline-block;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .start-btn:active {
+      transform: scale(0.95);
+      box-shadow: 0 3px 10px rgba(0, 142, 151, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <img class="logo" src="apple-touch-icon.png" alt="111">
+  <p class="description">The task is to score exactly 111 points as many times as possible in 60 seconds. Words can only be used once. Players get 30 more seconds each time three 111s are completed.</p>
+  <a href="game.html" class="start-btn">Start</a>
+
   <script>
-    if ('serviceWorker' in navigator) { 
-      navigator.serviceWorker.register('sw.js'); 
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/111-game/sw.js')
+        .then(reg => console.log('SW registered'))
+        .catch(err => console.log('SW failed:', err));
     }
   </script>
-</head>
-<body style="background:white; text-align:center; padding:0; margin:0; font-family:sans-serif; display:flex; flex-direction:column; align-items:center;">
-  <div style="margin-top: 30px; margin-bottom: -90px;"> 
-    <img src="icon-1024.png" style="width:390px; max-width:98vw; height:auto; display:block; margin:0 auto;">
-  </div>
-  <div style="padding: 0 25px;">
-    <p style="font-size:18px; line-height:1.4; color:black; max-width:320px; margin:40px auto; font-weight:500;">
-      The task is to score exactly 37 points as many times as possible in 60 seconds. Words can only be used once. Players get 30 more seconds each time three 37s are completed.
-    </p>
-  </div>
-  <button onclick="window.location.href='game.html'" style="background:#008E97; color:white; padding:18px 80px; font-size:32px; border:none; border-radius:100px; font-weight:bold; cursor:pointer;">
-    Start
-  </button>
 </body>
 </html>
