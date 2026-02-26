@@ -178,14 +178,29 @@ function findBestPossibleWord(boardTiles) {
 }
 
 function computeAllBestWords() {
-  const allBestWords = [];
+  const wordMap = new Map();
   if (boardResults.boardStates && dictionary) {
     for (const boardState of boardResults.boardStates) {
       const boardWords = findAllHelpfulWords(boardState);
-      allBestWords.push(...boardWords);
+      for (const w of boardWords) {
+        if (!wordMap.has(w.word) || wordMap.get(w.word) < w.score) {
+          wordMap.set(w.word, w.score);
+        }
+      }
     }
   }
-  return allBestWords.sort((a, b) => b.score - a.score).slice(0, 10);
+  // Ensure words the player actually spelled are always included
+  if (boardResults.playerWords) {
+    for (const pw of boardResults.playerWords) {
+      if (!wordMap.has(pw.word) || wordMap.get(pw.word) < pw.score) {
+        wordMap.set(pw.word, pw.score);
+      }
+    }
+  }
+  return Array.from(wordMap.entries())
+    .map(([word, score]) => ({ word, score }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
 }
 
 function findAllHelpfulWords(boardTiles) {
