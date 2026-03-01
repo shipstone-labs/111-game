@@ -828,10 +828,10 @@ function handleEnd(e) {
         if (result.gotBonus) {
           playBonusSound(); // Play bonus sound
           updateTimerDisplay();
-          showFeedback(`Board #${result.boardsSolved} — +30 sec bonus!`, 'bonus');
+          showFeedback(`${result.word} = 111! Extra time every third 111`, 'bonus');
         } else {
           playSuccessSound(); // Play regular success sound
-          showFeedback(`Board #${result.boardsSolved} completed!`, 'solved');
+          showFeedback(`${result.word} = 111! Board #${result.boardsSolved}`, 'solved');
         }
         break;
       case 'trap':
@@ -959,6 +959,9 @@ function endGameTimeout() {
   // Save final board layout
   saveFinalBoardLayout();
   
+  // Save game results immediately (just player words, no solver yet)
+  saveFinalGameResults();
+  
   // Clear any in-progress selection
   selectedPath = [];
   isDragging = false;
@@ -966,22 +969,12 @@ function endGameTimeout() {
   showFeedback(`Time's up! Boards: ${boardsSolved}`, 'timeout');
   startBtn.textContent = 'New Game';
   
-  // Redraw to clear selection visuals and update UI immediately
-  draw();
+  // Show results button IMMEDIATELY (no delay)
+  if (resultsBtn) {
+    resultsBtn.classList.add('visible');
+  }
   
-  // Run solver asynchronously after UI updates (prevents countdown stutter)
-  setTimeout(() => {
-    // Compute best possible words from all boards
-    boardResults.bestWords = computeAllBestWords();
-    
-    // Save all game results
-    saveFinalGameResults();
-    
-    // Show results button after solver completes
-    if (resultsBtn) {
-      resultsBtn.classList.add('visible');
-    }
-  }, 50); // 50ms delay lets UI update smoothly first
+  draw(); // Redraw to clear selection visuals
 }
 
 function startGame() {
@@ -1248,6 +1241,27 @@ async function init() {
       resetGame();
     }
   });
+  
+  // Results button click handler - compute solver on demand
+  if (resultsBtn) {
+    resultsBtn.addEventListener('click', (e) => {
+      e.preventDefault(); // Prevent immediate navigation
+      
+      // Change button text to show computing
+      const originalText = resultsBtn.textContent;
+      resultsBtn.textContent = 'Computing...';
+      resultsBtn.style.pointerEvents = 'none'; // Prevent double-click
+      
+      // Compute solver results (takes 1-2 seconds)
+      setTimeout(() => {
+        boardResults.bestWords = computeAllBestWords();
+        saveFinalGameResults();
+        
+        // Navigate to results page
+        window.location.href = 'results.html';
+      }, 100); // Small delay to let UI update
+    });
+  }
   
   // Draw blank board
   draw();
