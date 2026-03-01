@@ -978,6 +978,19 @@ function endGameTimeout() {
 }
 
 function startGame() {
+  // Guard: Don't allow starting if dictionary isn't loaded
+  if (!dictionary || dictionary.size === 0) {
+    console.error('Dictionary not loaded yet');
+    startBtn.textContent = 'Loading...';
+    return;
+  }
+  
+  // Guard: Don't allow starting if already playing
+  if (gameState === 'playing') {
+    console.log('Game already in progress');
+    return;
+  }
+  
   // Initialize audio on game start
   if (!audioContext) initAudio();
   
@@ -1234,12 +1247,26 @@ async function init() {
   canvas.addEventListener('touchmove', handleMove, { passive: false });
   canvas.addEventListener('touchend', handleEnd, { passive: false });
   
+  let buttonClickInProgress = false;
+  
   startBtn.addEventListener('click', () => {
+    // Prevent double-clicking
+    if (buttonClickInProgress) {
+      return;
+    }
+    
+    buttonClickInProgress = true;
+    
     if (gameState === 'ready' || gameState === 'timeout') {
       startGame();
     } else {
       resetGame();
     }
+    
+    // Reset the flag after a short delay
+    setTimeout(() => {
+      buttonClickInProgress = false;
+    }, 500);
   });
   
   // Results button click handler - compute solver on demand
