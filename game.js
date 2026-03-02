@@ -207,23 +207,23 @@ function findAllHelpfulWords(boardTiles) {
   if (!dictionary || !boardTiles || boardTiles.length === 0) {
     return [];
   }
-  const helpfulWords = [];
-  const seenWords = new Set();
+  const bestScores = new Map(); // word -> best score found
   for (let startIdx = 0; startIdx < boardTiles.length; startIdx++) {
     const allPaths = [];
     findAllPaths(startIdx, [startIdx], new Set([startIdx]), allPaths);
     for (const path of allPaths) {
       const word = path.map(i => boardTiles[i].letter).join('');
-      if (seenWords.has(word)) continue;
       if (!isValidWord(word)) continue;
       const score = calculateWordScore(path, boardTiles);
       if (score === TRAP_SCORE) continue;
       if (score > TARGET_SCORE) continue;
-      helpfulWords.push({ word, score });
-      seenWords.add(word);
+      // Keep the highest score found for this word across all paths
+      if (!bestScores.has(word) || score > bestScores.get(word)) {
+        bestScores.set(word, score);
+      }
     }
   }
-  return helpfulWords;
+  return Array.from(bestScores.entries()).map(([word, score]) => ({ word, score }));
 }
 
 // =============================================================================
