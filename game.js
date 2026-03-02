@@ -70,21 +70,19 @@ function playSound(frequency, duration, volume = 0.3, type = 'sine') {
 }
 
 function playTickSound() {
-  playSound(600, 0.08, 0.25, 'sine'); // Smoother, deeper, less tinny
+  playSound(600, 0.08, 0.25, 'sine');
 }
 
 function playTrapSound() {
-  playSound(200, 0.3, 0.4, 'sawtooth'); // Low, harsh beep
+  playSound(200, 0.3, 0.4, 'sawtooth');
 }
 
 function playSuccessSound() {
-  playSound(600, 0.2, 0.4, 'sine'); // Pleasant mid-tone
+  playSound(600, 0.2, 0.4, 'sine');
 }
 
 function playBonusSound() {
-  // Slightly louder, higher, brighter sound
   playSound(800, 0.3, 0.5, 'sine');
-  // Add a second harmonic for richness
   setTimeout(() => playSound(1200, 0.2, 0.3, 'sine'), 50);
 }
 
@@ -93,7 +91,6 @@ function playBonusSound() {
 // =============================================================================
 
 function saveCurrentBoardResult() {
-  // Save board state ONLY if it's a unique board we haven't seen before
   const boardSnapshot = board.map(tile => ({
     letter: tile.letter,
     multiplier: tile.multiplier,
@@ -101,30 +98,25 @@ function saveCurrentBoardResult() {
     col: tile.col
   }));
   
-  // Create a signature of this board to check if we've seen it before
   const boardSignature = board.map(t => t.letter).join('');
   
-  // Check if we already have this board
   const alreadyExists = boardResults.boardStates.some(savedBoard => {
     const savedSignature = savedBoard.map(t => t.letter).join('');
     return savedSignature === boardSignature;
   });
   
-  // Only save if this is a new unique board
   if (!alreadyExists) {
     boardResults.boardStates.push(boardSnapshot);
   }
 }
 
 function saveFinalGameResults() {
-  // Called ONLY when game ends - saves all words from entire game
   if (boardResults.playerWords && boardResults.playerWords.length > 0) {
     sessionStorage.setItem('boardResults', JSON.stringify(boardResults));
   }
 }
 
 function saveFinalBoardLayout() {
-  // Save the final board layout for viewing
   boardResults.finalBoard = board.map(tile => ({
     letter: tile.letter,
     multiplier: tile.multiplier,
@@ -134,40 +126,21 @@ function saveFinalBoardLayout() {
 }
 
 function resetBoardTracking() {
-  // Reset tracking for new board
   currentBoardBest = { word: '', score: 0 };
 }
 
 function trackWord(word, score) {
-  // Track in memory during gameplay (no freeze - no saving!)
   if (score > currentBoardBest.score) {
     currentBoardBest = { word, score };
   }
-  
-  // Add to master list immediately (in memory only)
-  boardResults.playerWords.push({
-    word: word,
-    score: score
-  });
+  boardResults.playerWords.push({ word: word, score: score });
 }
 
-/**
- * Find all possible paths starting from a given tile
- * @param {number} startIdx - Starting tile index
- * @param {number[]} currentPath - Current path being built
- * @param {Set<number>} visited - Visited tiles in current path
- * @param {Object[]} allPaths - Array to collect all paths
- */
 function findAllPaths(startIdx, currentPath, visited, allPaths) {
-  // Add current path if it's at least 2 letters
   if (currentPath.length >= 2) {
     allPaths.push([...currentPath]);
   }
-  
-  // Stop if path is too long (limit to 9 for performance)
   if (currentPath.length >= 9) return;
-  
-  // Try extending to each adjacent unvisited tile
   const neighbors = getNeighbors(startIdx);
   for (const nextIdx of neighbors) {
     if (!visited.has(nextIdx)) {
@@ -180,102 +153,76 @@ function findAllPaths(startIdx, currentPath, visited, allPaths) {
   }
 }
 
-/**
- * Find the best HELPFUL word on the current board
- * Best = highest score that is ≤ 111 and ≠ 110 (no traps, no overshoots)
- * @returns {Object} { word: string, score: number }
- */
 function findBestPossibleWord(boardTiles) {
   if (!dictionary || !boardTiles || boardTiles.length === 0) {
     return { word: 'N/A', score: 0 };
   }
-  
   let bestWord = '';
   let bestScore = 0;
-  
-  // Try starting from each tile
   for (let startIdx = 0; startIdx < boardTiles.length; startIdx++) {
     const allPaths = [];
     findAllPaths(startIdx, [startIdx], new Set([startIdx]), allPaths);
-    
-    // Check each path
     for (const path of allPaths) {
       const word = path.map(i => boardTiles[i].letter).join('');
-      
-      // Skip if not a valid word
       if (!isValidWord(word)) continue;
-      
       const score = calculateWordScore(path, boardTiles);
-      
-      // ONLY track words that HELP:
-      // - Not 110 (trap)
-      // - Not 112+ (overshoot/bust)
-      // - Must be ≤ 111
-      if (score === TRAP_SCORE) continue; // Skip 110 traps
-      if (score > TARGET_SCORE) continue; // Skip overshoots (112+)
-      
-      // Update best if this is better
+      if (score === TRAP_SCORE) continue;
+      if (score > TARGET_SCORE) continue;
       if (score > bestScore) {
         bestScore = score;
         bestWord = word;
       }
     }
   }
-  
   return { word: bestWord || 'N/A', score: bestScore };
 }
 
 function computeAllBestWords() {
-  // Find ALL helpful words from all boards, then take top 10
-  const allBestWords = [];
-  
+  const wordMap = new Map();
   if (boardResults.boardStates && dictionary) {
     for (const boardState of boardResults.boardStates) {
-      // Find ALL helpful words on this board (not just the single best)
       const boardWords = findAllHelpfulWords(boardState);
-      allBestWords.push(...boardWords);
+      for (const w of boardWords) {
+        if (!wordMap.has(w.word) || wordMap.get(w.word) < w.score) {
+          wordMap.set(w.word, w.score);
+        }
+      }
     }
   }
-  
-  // Sort by score and return top 10
-  return allBestWords
+  // Ensure words the player actually spelled are always included
+  if (boardResults.playerWords) {
+    for (const pw of boardResults.playerWords) {
+      if (!wordMap.has(pw.word) || wordMap.get(pw.word) < pw.score) {
+        wordMap.set(pw.word, pw.score);
+      }
+    }
+  }
+  return Array.from(wordMap.entries())
+    .map(([word, score]) => ({ word, score }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 10);
 }
 
 function findAllHelpfulWords(boardTiles) {
-  // Find ALL words that could help (score ≤ 111, not 110)
   if (!dictionary || !boardTiles || boardTiles.length === 0) {
     return [];
   }
-  
   const helpfulWords = [];
-  const seenWords = new Set(); // Avoid duplicates
-  
-  // Try starting from each tile
+  const seenWords = new Set();
   for (let startIdx = 0; startIdx < boardTiles.length; startIdx++) {
     const allPaths = [];
     findAllPaths(startIdx, [startIdx], new Set([startIdx]), allPaths);
-    
-    // Check each path
     for (const path of allPaths) {
       const word = path.map(i => boardTiles[i].letter).join('');
-      
-      // Skip if we've seen this word or if not valid
       if (seenWords.has(word)) continue;
       if (!isValidWord(word)) continue;
-      
       const score = calculateWordScore(path, boardTiles);
-      
-      // Only keep helpful words
-      if (score === TRAP_SCORE) continue; // Skip 110 traps
-      if (score > TARGET_SCORE) continue; // Skip overshoots (112+)
-      
+      if (score === TRAP_SCORE) continue;
+      if (score > TARGET_SCORE) continue;
       helpfulWords.push({ word, score });
       seenWords.add(word);
     }
   }
-  
   return helpfulWords;
 }
 
@@ -290,27 +237,22 @@ let currentPos = null;
 let displayWord = '';
 let totalScore = 0;
 let foundWords = new Set();
-let gameState = 'ready'; // 'ready', 'playing', 'timeout'
+let gameState = 'ready';
 let feedbackMessage = '';
-let feedbackType = ''; // 'invalid', 'duplicate', 'trap', 'overshoot'
+let feedbackType = '';
 
-/** Timer state */
 let timeRemaining = GAME_DURATION;
 let timerInterval = null;
 
-/** Boards solved counter (final score) */
 let boardsSolved = 0;
 const BONUS_THRESHOLD = 3;
 const BONUS_TIME = 30;
 
-/** Board tracking for results page */
 let boardResults = { playerWords: [], boardStates: [], finalBoard: null };
 let currentBoardBest = { word: '', score: 0 };
 
-/** @type {Set<string>|null} Dictionary loaded from words.txt.gz */
 let dictionary = null;
 
-// DOM elements (initialized in init())
 let canvas, ctx, scoreDisplay, boardsDisplay, startBtn, wordPill, wordText, timerDisplay, resultsBtn;
 let feedbackTimeout = null;
 
@@ -327,7 +269,7 @@ async function loadDictionary() {
     const text = await new Response(decompressed).text();
     dictionary = new Set(text.trim().toUpperCase().split('\n'));
     console.log(`Dictionary loaded: ${dictionary.size} words`);
-    initTwoLetterWords(); // Initialize 2-letter words for board validation
+    initTwoLetterWords();
     return true;
   } catch (err) {
     console.error('Failed to load dictionary:', err);
@@ -357,22 +299,17 @@ function weightedRandom(weights) {
 
 function selectLetters() {
   const letters = [...GUARANTEED];
-  const vowelCount = 5 + Math.floor(Math.random() * 3); // 5-7 vowels
-  
+  const vowelCount = 5 + Math.floor(Math.random() * 3);
   while (letters.filter(l => VOWELS.includes(l)).length < vowelCount) {
     letters.push(weightedRandom(VOWEL_WEIGHTS));
   }
-  
   while (letters.length < 16) {
     letters.push(weightedRandom(CONSONANT_WEIGHTS));
   }
-  
-  // Shuffle
   for (let i = letters.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [letters[i], letters[j]] = [letters[j], letters[i]];
   }
-  
   return letters.slice(0, 16);
 }
 
@@ -400,26 +337,19 @@ function generateBoard() {
   const letters = selectLetters();
   const multipliers = ['DL', 'DL', 'TL', 'TL', 'DW', 'TW'];
   const positions = Array.from({length: 16}, (_, i) => i);
-  
-  // Shuffle positions for multiplier placement
   for (let i = positions.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [positions[i], positions[j]] = [positions[j], positions[i]];
   }
-  
   const tiles = letters.map((letter, i) => ({
     letter,
     multiplier: null,
     row: Math.floor(i / 4),
     col: i % 4
   }));
-  
-  // Assign multipliers to first 6 shuffled positions
   multipliers.forEach((mult, i) => {
     tiles[positions[i]].multiplier = mult;
   });
-  
-  // Ensure high-value letters have adjacent vowels (swap if needed)
   for (let i = 0; i < tiles.length; i++) {
     if (HIGH_VALUE.includes(tiles[i].letter) && !hasAdjacentVowel(tiles, i)) {
       const neighbors = getNeighbors(i);
@@ -433,7 +363,6 @@ function generateBoard() {
       }
     }
   }
-  
   return tiles;
 }
 
@@ -443,33 +372,24 @@ function generateBoard() {
 
 function getLengthBonus(length) {
   if (length < 5) return 0;
-  return Math.min((length - 4) * 5, 25); // +5 per letter over 4, max +25
+  return Math.min((length - 4) * 5, 25);
 }
 
 function calculateWordScore(path, boardTiles) {
   let letterSum = 0;
   let wordMultiplier = 1;
-  
   for (const idx of path) {
     const tile = boardTiles[idx];
     let letterValue = LETTER_VALUES[tile.letter] || 1;
-    
     if (tile.multiplier === 'DL') letterValue *= 2;
     else if (tile.multiplier === 'TL') letterValue *= 3;
     else if (tile.multiplier === 'DW') wordMultiplier *= 2;
     else if (tile.multiplier === 'TW') wordMultiplier *= 3;
-    
     letterSum += letterValue;
   }
-  
   return letterSum * wordMultiplier + getLengthBonus(path.length);
 }
 
-/**
- * Validate that a path has no duplicate tiles.
- * @param {number[]} path - Array of tile indices
- * @returns {boolean} True if path is valid (no duplicates)
- */
 function isValidPath(path) {
   const seen = new Set();
   for (const idx of path) {
@@ -479,31 +399,15 @@ function isValidPath(path) {
   return true;
 }
 
-/**
- * Process a word submission - core game logic.
- * Shared by interactive path and test exports.
- * Mutates: totalScore, boardsSolved, foundWords, timeRemaining
- * Does NOT call UI functions.
- * @param {number[]} path - Array of tile indices
- * @returns {Object} Result object with result type and details
- */
 function processWordSubmission(path) {
-  // Validate path has no duplicate tiles
   if (!isValidPath(path)) return { result: 'invalid-path', path };
-  
   const word = path.map(i => board[i].letter).join('');
-  
   if (foundWords.has(word)) return { result: 'duplicate', word };
   if (!isValidWord(word)) return { result: 'invalid', word };
-  
-  // Word is valid - add to found words (persists entire game session)
   foundWords.add(word);
-  
   const wordScore = calculateWordScore(path, board);
   const newTotal = totalScore + wordScore;
-  
   if (newTotal === TARGET_SCORE) {
-    // Solved - track this helpful word!
     trackWord(word, wordScore);
     saveCurrentBoardResult();
     boardsSolved++;
@@ -513,19 +417,16 @@ function processWordSubmission(path) {
     if (gotBonus) timeRemaining += BONUS_TIME;
     return { result: 'solved', word, wordScore, boardsSolved, gotBonus };
   } else if (newTotal === TRAP_SCORE) {
-    // Trap - DON'T track, this didn't help!
     saveCurrentBoardResult();
     resetBoardTracking();
     totalScore = 0;
     return { result: 'trap', word, wordScore, newTotal, boardsSolved };
   } else if (newTotal > TARGET_SCORE) {
-    // Overshoot - DON'T track, this didn't help!
     saveCurrentBoardResult();
     resetBoardTracking();
     totalScore = 0;
     return { result: 'overshoot', word, wordScore, newTotal, boardsSolved };
   } else {
-    // Normal valid word - track it!
     trackWord(word, wordScore);
     totalScore = newTotal;
     return { result: 'valid', word, wordScore, totalScore };
@@ -578,19 +479,14 @@ function lightenColor(hex, pct) {
 
 function drawBlankBoard() {
   const cornerRadius = 12;
-  
   for (let row = 0; row < 4; row++) {
     for (let col = 0; col < 4; col++) {
       const x = BOARD_PADDING + col * (TILE_SIZE + TILE_GAP);
       const y = BOARD_PADDING + row * (TILE_SIZE + TILE_GAP);
-      
-      // Shadow
       ctx.fillStyle = 'rgba(0,0,0,0.2)';
       ctx.beginPath();
       ctx.roundRect(x + 3, y + 4, TILE_SIZE, TILE_SIZE, cornerRadius);
       ctx.fill();
-      
-      // Empty tile
       ctx.fillStyle = '#252540';
       ctx.beginPath();
       ctx.roundRect(x, y, TILE_SIZE, TILE_SIZE, cornerRadius);
@@ -600,39 +496,27 @@ function drawBlankBoard() {
 }
 
 function draw() {
-  // Background
   ctx.fillStyle = '#1a1a2e';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  // Don't draw tiles before game starts
   if (gameState === 'ready') {
     drawBlankBoard();
     return;
   }
-  
   const cornerRadius = 12;
   const faceInset = 4;
-  
-  // Draw tiles
   for (let i = 0; i < board.length; i++) {
     const tile = board[i];
     const x = BOARD_PADDING + tile.col * (TILE_SIZE + TILE_GAP);
     const y = BOARD_PADDING + tile.row * (TILE_SIZE + TILE_GAP);
     const isSel = selectedPath.includes(i);
-    
-    // Shadow
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.beginPath();
     ctx.roundRect(x + 3, y + 4, TILE_SIZE, TILE_SIZE, cornerRadius);
     ctx.fill();
-    
-    // Tile base
     ctx.fillStyle = isSel ? '#d17a15' : '#2a2a4a';
     ctx.beginPath();
     ctx.roundRect(x, y, TILE_SIZE, TILE_SIZE, cornerRadius);
     ctx.fill();
-    
-    // Tile face gradient
     const tileGrad = ctx.createLinearGradient(x, y, x, y + TILE_SIZE - faceInset);
     if (isSel) {
       tileGrad.addColorStop(0, '#ffcc66');
@@ -645,8 +529,6 @@ function draw() {
     ctx.beginPath();
     ctx.roundRect(x, y, TILE_SIZE - faceInset, TILE_SIZE - faceInset, cornerRadius);
     ctx.fill();
-    
-    // Multiplier border
     if (tile.multiplier) {
       ctx.strokeStyle = MULTIPLIER_COLORS[tile.multiplier];
       ctx.lineWidth = 3;
@@ -654,48 +536,33 @@ function draw() {
       ctx.roundRect(x + 1.5, y + 1.5, TILE_SIZE - faceInset - 3, TILE_SIZE - faceInset - 3, cornerRadius - 2);
       ctx.stroke();
     }
-    
-    // Letter shadow
     ctx.fillStyle = 'rgba(0,0,0,0.3)';
     ctx.font = 'bold 38px system-ui';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(tile.letter, x + (TILE_SIZE - faceInset) / 2 + 1, y + (TILE_SIZE - faceInset) / 2 + 2);
-    
-    // Letter
     ctx.fillStyle = isSel ? '#5a4010' : '#fff';
     ctx.fillText(tile.letter, x + (TILE_SIZE - faceInset) / 2, y + (TILE_SIZE - faceInset) / 2);
-    
-    // Point value (20px font, was 16px)
     ctx.fillStyle = isSel ? '#7a5a20' : '#aaa';
     ctx.font = 'bold 20px system-ui';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
     ctx.fillText(LETTER_VALUES[tile.letter], x + TILE_SIZE - faceInset - 6, y + 6);
   }
-  
-  // Draw multiplier badges
   for (let i = 0; i < board.length; i++) {
     const tile = board[i];
     if (!tile.multiplier) continue;
-    
     const x = BOARD_PADDING + tile.col * (TILE_SIZE + TILE_GAP);
     const y = BOARD_PADDING + tile.row * (TILE_SIZE + TILE_GAP);
     const bx = x - 2, by = y - 2;
-    
-    // Badge shadow
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.beginPath();
     ctx.arc(bx + BADGE_RADIUS + 1, by + BADGE_RADIUS + 1, BADGE_RADIUS, 0, Math.PI * 2);
     ctx.fill();
-    
-    // Badge background
     ctx.fillStyle = '#fff';
     ctx.beginPath();
     ctx.arc(bx + BADGE_RADIUS, by + BADGE_RADIUS, BADGE_RADIUS, 0, Math.PI * 2);
     ctx.fill();
-    
-    // Badge gradient
     const badgeGrad = ctx.createLinearGradient(bx, by, bx, by + BADGE_RADIUS * 2);
     badgeGrad.addColorStop(0, lightenColor(MULTIPLIER_COLORS[tile.multiplier], 15));
     badgeGrad.addColorStop(1, MULTIPLIER_COLORS[tile.multiplier]);
@@ -703,22 +570,16 @@ function draw() {
     ctx.beginPath();
     ctx.arc(bx + BADGE_RADIUS, by + BADGE_RADIUS, BADGE_RADIUS - 3, 0, Math.PI * 2);
     ctx.fill();
-    
-    // Badge text
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 10px system-ui';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(tile.multiplier, bx + BADGE_RADIUS, by + BADGE_RADIUS);
   }
-  
-  // Draw selection path
   if (selectedPath.length > 1) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     const first = getTileCenter(board[selectedPath[0]].row, board[selectedPath[0]].col);
-    
-    // Path shadow
     ctx.strokeStyle = 'rgba(0,0,0,0.4)';
     ctx.lineWidth = 10;
     ctx.beginPath();
@@ -729,8 +590,6 @@ function draw() {
     }
     if (isDragging && currentPos) ctx.lineTo(currentPos.x + 2, currentPos.y + 2);
     ctx.stroke();
-    
-    // Path line
     ctx.strokeStyle = '#e8850c';
     ctx.lineWidth = 6;
     ctx.beginPath();
@@ -760,13 +619,9 @@ function getCoords(e) {
 function handleStart(e) {
   if (gameState !== 'playing') return;
   e.preventDefault();
-  
-  // Initialize audio context on first user interaction
   if (!audioContext) initAudio();
-  
   const coords = getCoords(e);
   const tile = getTileAt(coords.x, coords.y);
-  
   if (tile) {
     selectedPath = [tile.index];
     isDragging = true;
@@ -780,18 +635,14 @@ function handleStart(e) {
 function handleMove(e) {
   if (!isDragging || gameState !== 'playing') return;
   e.preventDefault();
-  
   const coords = getCoords(e);
   currentPos = coords;
   const tile = getTileAt(coords.x, coords.y);
-  
   if (tile) {
     const idx = selectedPath.indexOf(tile.index);
     if (idx !== -1 && idx < selectedPath.length - 1) {
-      // Backtrack
       selectedPath = selectedPath.slice(0, idx + 1);
     } else if (idx === -1) {
-      // Extend path if adjacent
       const last = board[selectedPath[selectedPath.length - 1]];
       if (areAdjacent(last, tile)) {
         selectedPath.push(tile.index);
@@ -806,15 +657,11 @@ function handleMove(e) {
 function handleEnd(e) {
   if (!isDragging || gameState !== 'playing') return;
   e.preventDefault();
-  
   isDragging = false;
   currentPos = null;
-  
   const word = selectedPath.map(i => board[i].letter).join('');
-  
   if (word.length >= 2) {
     const result = processWordSubmission(selectedPath);
-    
     switch (result.result) {
       case 'duplicate':
         showFeedback('Already used', 'duplicate');
@@ -826,35 +673,33 @@ function handleEnd(e) {
         updateScore();
         draw();
         if (result.gotBonus) {
-          playBonusSound(); // Play bonus sound
+          playBonusSound();
           updateTimerDisplay();
-          showFeedback(`${result.word} = 111! Extra time every third 111`, 'bonus');
+          showFeedback(`${word} = 111! Board #${result.boardsSolved} — +30 sec bonus!`, 'bonus');
         } else {
-          playSuccessSound(); // Play regular success sound
-          showFeedback(`${result.word} = 111! Board #${result.boardsSolved}`, 'solved');
+          playSuccessSound();
+          showFeedback(`${word} = 111! Board #${result.boardsSolved}`, 'solved');
         }
         break;
       case 'trap':
-        playTrapSound(); // Play trap sound
+        playTrapSound();
         updateScore();
         draw();
-        showFeedback(`${result.word} = 110 trap!`, 'trap');
+        showFeedback(`${word} = 110 trap!`, 'trap');
         break;
       case 'overshoot':
         updateScore();
         draw();
-        showFeedback(`${result.word} = ${result.newTotal} overshoot!`, 'overshoot');
+        showFeedback(`${word} = ${result.newTotal} overshoot!`, 'overshoot');
         break;
       case 'valid':
         updateScore();
-        showFeedback(`${result.word} +${result.wordScore}`, 'valid');
+        showFeedback(`${word} +${result.wordScore}`, 'valid');
         break;
     }
   } else {
-    // Word too short, hide the selecting display
     hideWordPill();
   }
-  
   selectedPath = [];
   displayWord = '';
   draw();
@@ -867,8 +712,6 @@ function handleEnd(e) {
 function updateScore(state = '') {
   scoreDisplay.textContent = totalScore;
   boardsDisplay.textContent = boardsSolved;
-  
-  // Apply animation class to boards display for special states
   if (state === 'solved' || state === 'bonus') {
     boardsDisplay.parentElement.className = 'boards winner';
     setTimeout(() => { boardsDisplay.parentElement.className = 'boards'; }, 500);
@@ -880,11 +723,8 @@ function showFeedback(message, type) {
     clearTimeout(feedbackTimeout);
     feedbackTimeout = null;
   }
-  
   wordText.textContent = message;
   wordPill.className = `word-pill visible ${type}`;
-  
-  // Auto-hide after delay (except for win)
   if (type !== 'win') {
     feedbackTimeout = setTimeout(() => {
       wordPill.className = 'word-pill';
@@ -894,13 +734,13 @@ function showFeedback(message, type) {
 }
 
 function showSelecting(word) {
-  if (feedbackTimeout) return; // Don't override feedback
+  if (feedbackTimeout) return;
   wordText.textContent = word;
   wordPill.className = 'word-pill visible selecting';
 }
 
 function hideWordPill() {
-  if (feedbackTimeout) return; // Don't hide during feedback
+  if (feedbackTimeout) return;
   wordPill.className = 'word-pill';
 }
 
@@ -914,8 +754,6 @@ function formatTime(seconds) {
 
 function updateTimerDisplay() {
   timerDisplay.textContent = formatTime(timeRemaining);
-  
-  // Update timer styling based on remaining time
   if (timeRemaining <= 10) {
     timerDisplay.className = 'timer critical';
   } else if (timeRemaining <= 20) {
@@ -929,16 +767,12 @@ function startTimer() {
   stopTimer();
   timeRemaining = GAME_DURATION;
   updateTimerDisplay();
-  
   timerInterval = setInterval(() => {
     timeRemaining--;
     updateTimerDisplay();
-    
-    // Play tick sound for last 10 seconds
     if (timeRemaining <= 10 && timeRemaining > 0) {
       playTickSound();
     }
-    
     if (timeRemaining <= 0) {
       stopTimer();
       endGameTimeout();
@@ -955,87 +789,69 @@ function stopTimer() {
 
 function endGameTimeout() {
   gameState = 'timeout';
-  
-  // Save final board layout
   saveFinalBoardLayout();
-  
-  // Save game results immediately (just player words, no solver yet)
-  saveFinalGameResults();
-  
-  // Clear any in-progress selection
+  saveCurrentBoardResult(); // Ensure final active board is analyzed
   selectedPath = [];
   isDragging = false;
   currentPos = null;
   showFeedback(`Time's up! Boards: ${boardsSolved}`, 'timeout');
   startBtn.textContent = 'New Game';
-  
-  // Show results button IMMEDIATELY (no delay)
-  if (resultsBtn) {
-    resultsBtn.classList.add('visible');
-  }
-  
-  draw(); // Redraw to clear selection visuals
+  draw();
+  setTimeout(() => {
+    // Always save player words immediately so results page always has data
+    saveFinalGameResults();
+    // Then attempt to compute best possible words
+    try {
+      boardResults.bestWords = computeAllBestWords();
+      saveFinalGameResults(); // Save again with bestWords included
+    } catch(e) {
+      console.error('Solver error:', e);
+    }
+    // Always show results button regardless of whether solver succeeded
+    if (resultsBtn) {
+      resultsBtn.classList.add('visible');
+      resultsBtn.style.display = 'block';
+    }
+  }, 50);
 }
 
 function startGame() {
-  // Guard: Don't allow starting if dictionary isn't loaded
-  if (!dictionary || dictionary.size === 0) {
-    console.error('Dictionary not loaded yet');
-    startBtn.textContent = 'Loading...';
-    return;
-  }
-  
-  // Guard: Don't allow starting if already playing
-  if (gameState === 'playing') {
-    console.log('Game already in progress');
-    return;
-  }
-  
-  // Initialize audio on game start
   if (!audioContext) initAudio();
-  
   gameState = 'playing';
   totalScore = 0;
   boardsSolved = 0;
   foundWords.clear();
-  
-  // Reset board tracking for new game
   boardResults = { playerWords: [], boardStates: [], finalBoard: null };
   currentBoardBest = { word: '', score: 0 };
   sessionStorage.removeItem('boardResults');
-  
   board = generateValidBoard();
   updateScore();
   startBtn.textContent = 'Reset';
-  
-  // Hide results button when starting new game
   if (resultsBtn) {
     resultsBtn.classList.remove('visible');
+    resultsBtn.style.display = 'none';
   }
-  
   startTimer();
   draw();
 }
 
 function resetGame() {
+  saveCurrentBoardResult(); // Save board for results analysis
+  stopTimer();
   totalScore = 0;
   boardsSolved = 0;
   foundWords.clear();
-  
-  // Reset board tracking
   boardResults = { playerWords: [], boardStates: [], finalBoard: null };
   currentBoardBest = { word: '', score: 0 };
   sessionStorage.removeItem('boardResults');
-  
   board = generateValidBoard();
   gameState = 'playing';
   updateScore();
-  
-  // Hide results button when resetting game
   if (resultsBtn) {
     resultsBtn.classList.remove('visible');
+    resultsBtn.style.display = 'none';
   }
-  
+  startBtn.textContent = 'Reset';
   startTimer();
   draw();
 }
@@ -1044,15 +860,9 @@ function resetGame() {
 // BOARD VALIDATION
 // =============================================================================
 
-/** @type {Set<string>|null} Two-letter words for playability validation */
 let twoLetterWords = null;
-/** @type {Set<string>|null} Three-letter words for playability validation */
 let threeLetterWords = null;
 
-/**
- * Initialize the two and three-letter words sets from dictionary.
- * Called once after dictionary loads.
- */
 function initTwoLetterWords() {
   if (!dictionary) return;
   twoLetterWords = new Set([...dictionary].filter(w => w.length === 2));
@@ -1060,11 +870,6 @@ function initTwoLetterWords() {
   console.log(`Two-letter words: ${twoLetterWords.size}, Three-letter: ${threeLetterWords.size}`);
 }
 
-/**
- * Validate letter distribution: max 4 of any letter, min 9 unique.
- * @param {Object[]} tiles - Board tiles
- * @returns {boolean} True if valid
- */
 function validateLetterDistribution(tiles) {
   const counts = {};
   for (const tile of tiles) {
@@ -1075,72 +880,44 @@ function validateLetterDistribution(tiles) {
   return uniqueCount >= 9 && maxCount <= 4;
 }
 
-/**
- * Validate board has at least one high-value letter (4+ points).
- * @param {Object[]} tiles - Board tiles
- * @returns {boolean} True if valid
- */
 function validateHighValueLetter(tiles) {
   return tiles.some(t => LETTER_VALUES[t.letter] >= 4);
 }
 
-/**
- * Validate no three identical letters in a row (horizontal, vertical, diagonal).
- * @param {Object[]} tiles - Board tiles
- * @returns {boolean} True if valid
- */
 function validateNoAdjacentTriples(tiles) {
   const grid = [];
   for (let r = 0; r < 4; r++) {
     grid[r] = tiles.slice(r * 4, r * 4 + 4).map(t => t.letter);
   }
-  
-  // Check horizontal
   for (let r = 0; r < 4; r++) {
     for (let c = 0; c < 2; c++) {
       if (grid[r][c] === grid[r][c+1] && grid[r][c] === grid[r][c+2]) return false;
     }
   }
-  
-  // Check vertical
   for (let c = 0; c < 4; c++) {
     for (let r = 0; r < 2; r++) {
       if (grid[r][c] === grid[r+1][c] && grid[r][c] === grid[r+2][c]) return false;
     }
   }
-  
-  // Check diagonals (down-right)
   for (let r = 0; r < 2; r++) {
     for (let c = 0; c < 2; c++) {
       if (grid[r][c] === grid[r+1][c+1] && grid[r][c] === grid[r+2][c+2]) return false;
     }
   }
-  
-  // Check diagonals (down-left)
   for (let r = 0; r < 2; r++) {
     for (let c = 2; c < 4; c++) {
       if (grid[r][c] === grid[r+1][c-1] && grid[r][c] === grid[r+2][c-2]) return false;
     }
   }
-  
   return true;
 }
 
-/**
- * Validate every tile can form at least one 2 or 3-letter word with neighbors.
- * Uses 2-letter words first (fast), falls back to 3-letter for letters like C, V.
- * @param {Object[]} tiles - Board tiles
- * @returns {boolean} True if valid
- */
 function validatePlayableLetters(tiles) {
-  if (!twoLetterWords || !threeLetterWords) return true; // Skip if not loaded
-  
+  if (!twoLetterWords || !threeLetterWords) return true;
   for (let i = 0; i < tiles.length; i++) {
     const letter = tiles[i].letter;
     const neighbors = getNeighbors(i);
     let hasValidWord = false;
-    
-    // Check 2-letter words first
     for (const n of neighbors) {
       const pair1 = letter + tiles[n].letter;
       const pair2 = tiles[n].letter + letter;
@@ -1149,22 +926,13 @@ function validatePlayableLetters(tiles) {
         break;
       }
     }
-    
-    // If no 2-letter word, check 3-letter words with ADJACENT paths
-    // BUGFIX 2026-01-01: Previous code checked all permutations without verifying
-    // the tiles could actually be traversed in that order
     if (!hasValidWord) {
       for (const n1 of neighbors) {
         const n1Neighbors = getNeighbors(n1);
         for (const n2 of n1Neighbors) {
-          if (n2 === i) continue; // Skip self
-          
-          // Only check if n2 is NOT a direct neighbor of i (forms valid 3-tile path)
+          if (n2 === i) continue;
           if (!neighbors.includes(n2)) {
             const l = letter, a = tiles[n1].letter, b = tiles[n2].letter;
-            // Check only the two valid orderings for this specific path:
-            // i -> n1 -> n2  (l-a-b)
-            // n2 -> n1 -> i  (b-a-l)
             if (threeLetterWords.has(l + a + b) || threeLetterWords.has(b + a + l)) {
               hasValidWord = true;
               break;
@@ -1174,17 +942,11 @@ function validatePlayableLetters(tiles) {
         if (hasValidWord) break;
       }
     }
-    
     if (!hasValidWord) return false;
   }
   return true;
 }
 
-/**
- * Run all board validations.
- * @param {Object[]} tiles - Board tiles
- * @returns {boolean} True if all validations pass
- */
 function validateBoard(tiles) {
   return validateLetterDistribution(tiles) &&
          validateHighValueLetter(tiles) &&
@@ -1192,18 +954,13 @@ function validateBoard(tiles) {
          validatePlayableLetters(tiles);
 }
 
-/**
- * Generate a board that passes all validations.
- * @param {number} maxAttempts - Maximum generation attempts
- * @returns {Object[]} Valid board tiles
- */
 function generateValidBoard(maxAttempts = 50) {
   for (let i = 0; i < maxAttempts; i++) {
     const tiles = generateBoard();
     if (validateBoard(tiles)) return tiles;
   }
   console.warn('Failed to generate valid board after', maxAttempts, 'attempts');
-  return generateBoard(); // Fallback
+  return generateBoard();
 }
 
 // =============================================================================
@@ -1226,11 +983,9 @@ async function init() {
   canvas.style.width = BOARD_WIDTH + 'px';
   canvas.style.height = BOARD_HEIGHT + 'px';
   
-  // Load dictionary
   startBtn.disabled = true;
   startBtn.textContent = 'Loading...';
   const loaded = await loadDictionary();
-  
   if (loaded) {
     startBtn.disabled = false;
     startBtn.textContent = 'Play';
@@ -1238,7 +993,6 @@ async function init() {
     startBtn.textContent = 'Error';
   }
   
-  // Event listeners
   canvas.addEventListener('mousedown', handleStart);
   canvas.addEventListener('mousemove', handleMove);
   canvas.addEventListener('mouseup', handleEnd);
@@ -1247,82 +1001,34 @@ async function init() {
   canvas.addEventListener('touchmove', handleMove, { passive: false });
   canvas.addEventListener('touchend', handleEnd, { passive: false });
   
-  let buttonClickInProgress = false;
-  
   startBtn.addEventListener('click', () => {
-    // Prevent double-clicking
-    if (buttonClickInProgress) {
-      return;
-    }
-    
-    buttonClickInProgress = true;
-    
     if (gameState === 'ready' || gameState === 'timeout') {
       startGame();
     } else {
       resetGame();
     }
-    
-    // Reset the flag after a short delay
-    setTimeout(() => {
-      buttonClickInProgress = false;
-    }, 500);
   });
   
-  // Results button click handler - compute solver on demand
-  if (resultsBtn) {
-    resultsBtn.addEventListener('click', (e) => {
-      e.preventDefault(); // Prevent immediate navigation
-      
-      // Change button text to show computing
-      const originalText = resultsBtn.textContent;
-      resultsBtn.textContent = 'Computing...';
-      resultsBtn.style.pointerEvents = 'none'; // Prevent double-click
-      
-      // Compute solver results (takes 1-2 seconds)
-      setTimeout(() => {
-        boardResults.bestWords = computeAllBestWords();
-        saveFinalGameResults();
-        
-        // Navigate to results page
-        window.location.href = 'results.html';
-      }, 100); // Small delay to let UI update
-    });
-  }
-  
-  // Draw blank board
   draw();
 }
 
-
-// Start when DOM ready
 if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', init);
 }
 
-// Node.js exports for testing
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    // Constants
     TARGET_SCORE, TRAP_SCORE, LETTER_VALUES, MULTIPLIER_COLORS,
     VOWELS, GUARANTEED, HIGH_VALUE, GRID_SIZE,
     BONUS_THRESHOLD, BONUS_TIME, GAME_DURATION, FEEDBACK_DURATION,
-    // Board generation
     selectLetters, generateBoard, getNeighbors, hasAdjacentVowel,
-    // Board validation
     validateLetterDistribution, validateHighValueLetter, validateNoAdjacentTriples,
     validatePlayableLetters, validateBoard, generateValidBoard, initTwoLetterWords,
-    // Geometry
     areAdjacent, getTileCenter, getTileAt,
-    // Scoring
     getLengthBonus, calculateWordScore,
-    // Dictionary
     isValidWord,
-    // Path validation
     isValidPath,
-    // For test injection
     setDictionary: (dict) => { dictionary = dict; },
-    // State access for integration tests
     getState: () => ({ board, totalScore, boardsSolved, foundWords: [...foundWords], gameState, timeRemaining }),
     setState: (s) => { 
       if (s.board) board = s.board;
@@ -1332,11 +1038,9 @@ if (typeof module !== 'undefined' && module.exports) {
       if (s.gameState) gameState = s.gameState;
       if (s.timeRemaining !== undefined) timeRemaining = s.timeRemaining;
     },
-    // Selection state for testing Bug #3 fix
     getSelectionState: () => ({ selectedPath: [...selectedPath], isDragging, currentPos }),
     setSelectionState: (path, dragging) => { selectedPath = path; isDragging = dragging; },
     clearSelection: () => { selectedPath = []; isDragging = false; currentPos = null; },
-    // Simulate word submission (for integration tests)
     submitWord: (path) => {
       selectedPath = path;
       return processWordSubmission(path);
