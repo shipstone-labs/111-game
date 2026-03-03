@@ -1,5 +1,5 @@
 /* sw.js — PWA-installable version */
-const VERSION = 'v6';
+const VERSION = 'v7';
 const CACHE_NAME = `111-game-${VERSION}`;
 const CORE_FILES = [
   '/111-game/',
@@ -9,7 +9,10 @@ const CORE_FILES = [
   '/111-game/icon-192b.png',
   '/111-game/icon-512.png',
   '/111-game/icon-1024.png',
-  '/111-game/apple-touch-icon.png'
+  '/111-game/apple-touch-icon.png',
+  '/111-game/maskable-192.png',
+  '/111-game/maskable-512.png',
+  '/111-game/maskable-1024.png'
 ];
 
 self.addEventListener('install', (e) => {
