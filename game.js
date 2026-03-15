@@ -678,7 +678,9 @@ function handleEnd(e) {
           // 11 boards — CHAMPION, game ends
           playBonusSound();
           updateTimerDisplay();
-          showFeedback(`${word} = 111! CHAMPION! 11 boards!`, 'win');
+          showFeedback("YOU'VE WON — 11 BOARDS COMPLETED!", 'champion');
+          // Push board and button down to maintain spacing from larger text
+          canvas.style.marginTop = '10px';
           stopTimer();
           gameState = 'timeout';
           saveFinalBoardLayout();
@@ -694,11 +696,6 @@ function handleEnd(e) {
               resultsBtn.style.display = 'block';
             }
           }, 50);
-        } else if (result.isWinner && result.boardsSolved === 3) {
-          // Exactly 3 boards — flash WINNER, keep playing
-          playBonusSound();
-          updateTimerDisplay();
-          showFeedback(`${word} = 111! WINNER! Board #${result.boardsSolved} — +20 sec!`, 'bonus');
         } else {
           playBonusSound();
           updateTimerDisplay();
@@ -756,7 +753,7 @@ function showFeedback(message, type) {
   }
   wordText.textContent = message;
   wordPill.className = `word-pill visible ${type}`;
-  if (type !== 'win') {
+  if (type !== 'win' && type !== 'champion') {
     feedbackTimeout = setTimeout(() => {
       wordPill.className = 'word-pill';
       feedbackTimeout = null;
@@ -857,6 +854,7 @@ function startGame() {
   sessionStorage.removeItem('boardResults');
   board = generateValidBoard();
   updateScore();
+  canvas.style.marginTop = '';
   startBtn.textContent = 'Reset';
   if (resultsBtn) {
     resultsBtn.classList.remove('visible');
@@ -878,6 +876,7 @@ function resetGame() {
   board = generateValidBoard();
   gameState = 'playing';
   updateScore();
+  canvas.style.marginTop = '';
   if (resultsBtn) {
     resultsBtn.classList.remove('visible');
     resultsBtn.style.display = 'none';
