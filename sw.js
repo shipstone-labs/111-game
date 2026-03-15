@@ -1,5 +1,5 @@
 /* sw.js — PWA-installable version */
-const VERSION = 'v7';
+const VERSION = 'v8';
 const CACHE_NAME = `111-game-${VERSION}`;
 const CORE_FILES = [
   '/111-game/',
