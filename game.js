@@ -404,29 +404,29 @@ function processWordSubmission(path) {
   const word = path.map(i => board[i].letter).join('');
   if (foundWords.has(word)) return { result: 'duplicate', word };
   if (!isValidWord(word)) return { result: 'invalid', word };
-  foundWords.add(word);
   const wordScore = calculateWordScore(path, board);
   const newTotal = totalScore + wordScore;
   if (newTotal === TARGET_SCORE) {
+    foundWords.add(word);
     trackWord(word, wordScore);
     saveCurrentBoardResult();
     boardsSolved++;
     resetBoardTracking();
     totalScore = 0;
-    const gotBonus = boardsSolved % BONUS_THRESHOLD === 0;
-    if (gotBonus) timeRemaining += BONUS_TIME;
-    return { result: 'solved', word, wordScore, boardsSolved, gotBonus };
+    // Every board completion gives +30 seconds
+    timeRemaining += BONUS_TIME;
+    // Check milestones
+    const isChampion = boardsSolved >= 11;
+    const isWinner = boardsSolved >= 3;
+    return { result: 'solved', word, wordScore, boardsSolved, gotBonus: true, isWinner, isChampion };
   } else if (newTotal === TRAP_SCORE) {
-    saveCurrentBoardResult();
-    resetBoardTracking();
-    totalScore = 0;
-    return { result: 'trap', word, wordScore, newTotal, boardsSolved };
+    // Bust: don't add to foundWords, don't reset board or score
+    return { result: 'trap', word, wordScore, newTotal, boardsSolved, preBustScore: totalScore };
   } else if (newTotal > TARGET_SCORE) {
-    saveCurrentBoardResult();
-    resetBoardTracking();
-    totalScore = 0;
-    return { result: 'overshoot', word, wordScore, newTotal, boardsSolved };
+    // Bust: don't add to foundWords, don't reset board or score
+    return { result: 'overshoot', word, wordScore, newTotal, boardsSolved, preBustScore: totalScore };
   } else {
+    foundWords.add(word);
     trackWord(word, wordScore);
     totalScore = newTotal;
     return { result: 'valid', word, wordScore, totalScore };
@@ -670,27 +670,58 @@ function handleEnd(e) {
         showFeedback('Not a word', 'invalid');
         break;
       case 'solved':
+        foundWords.clear(); // New board, reset used words
+        board = generateValidBoard();
         updateScore();
         draw();
-        if (result.gotBonus) {
+        if (result.isChampion) {
+          // 11 boards — CHAMPION, game ends
           playBonusSound();
           updateTimerDisplay();
-          showFeedback(`${word} = 111! Board #${result.boardsSolved} — +30 sec bonus!`, 'bonus');
+          showFeedback(`${word} = 111! CHAMPION! 11 boards!`, 'win');
+          stopTimer();
+          gameState = 'timeout';
+          saveFinalBoardLayout();
+          startBtn.textContent = 'New Game';
+          setTimeout(() => {
+            saveFinalGameResults();
+            try {
+              boardResults.bestWords = computeAllBestWords();
+              saveFinalGameResults();
+            } catch(e) { console.error('Solver error:', e); }
+            if (resultsBtn) {
+              resultsBtn.classList.add('visible');
+              resultsBtn.style.display = 'block';
+            }
+          }, 50);
+        } else if (result.isWinner && result.boardsSolved === 3) {
+          // Exactly 3 boards — flash WINNER, keep playing
+          playBonusSound();
+          updateTimerDisplay();
+          showFeedback(`${word} = 111! WINNER! Board #${result.boardsSolved} — +30 sec!`, 'bonus');
         } else {
-          playSuccessSound();
-          showFeedback(`${word} = 111! Board #${result.boardsSolved}`, 'solved');
+          playBonusSound();
+          updateTimerDisplay();
+          showFeedback(`${word} = 111! Board #${result.boardsSolved} — +30 sec!`, 'bonus');
         }
         break;
       case 'trap':
         playTrapSound();
-        updateScore();
-        draw();
-        showFeedback(`${word} = 110 trap!`, 'trap');
+        showFeedback(`${word} = 110 BUST!`, 'trap');
+        // After 1 second, revert to pre-bust state (same board, same score, same timer)
+        setTimeout(() => {
+          // Score was never changed — word was not added to foundWords by processWordSubmission
+          // but we need to ensure the word that caused the bust is NOT available to replay
+          // (it wasn't added to foundWords, which is correct — it busted, player can try other words)
+          draw();
+        }, 1000);
         break;
       case 'overshoot':
-        updateScore();
-        draw();
-        showFeedback(`${word} = ${result.newTotal} overshoot!`, 'overshoot');
+        showFeedback(`${word} = ${result.newTotal} BUST!`, 'overshoot');
+        // After 1 second, revert to pre-bust state (same board, same score, same timer)
+        setTimeout(() => {
+          draw();
+        }, 1000);
         break;
       case 'valid':
         updateScore();
