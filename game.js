@@ -246,7 +246,7 @@ let timerInterval = null;
 
 let boardsSolved = 0;
 const BONUS_THRESHOLD = 3;
-const BONUS_TIME = 30;
+const BONUS_TIME = 20;
 
 let boardResults = { playerWords: [], boardStates: [], finalBoard: null };
 let currentBoardBest = { word: '', score: 0 };
@@ -413,7 +413,7 @@ function processWordSubmission(path) {
     boardsSolved++;
     resetBoardTracking();
     totalScore = 0;
-    // Every board completion gives +30 seconds
+    // Every board completion gives +20 seconds
     timeRemaining += BONUS_TIME;
     // Check milestones
     const isChampion = boardsSolved >= 11;
@@ -698,11 +698,11 @@ function handleEnd(e) {
           // Exactly 3 boards — flash WINNER, keep playing
           playBonusSound();
           updateTimerDisplay();
-          showFeedback(`${word} = 111! WINNER! Board #${result.boardsSolved} — +30 sec!`, 'bonus');
+          showFeedback(`${word} = 111! WINNER! Board #${result.boardsSolved} — +20 sec!`, 'bonus');
         } else {
           playBonusSound();
           updateTimerDisplay();
-          showFeedback(`${word} = 111! Board #${result.boardsSolved} — +30 sec!`, 'bonus');
+          showFeedback(`${word} = 111! Board #${result.boardsSolved} — +20 sec!`, 'bonus');
         }
         break;
       case 'trap':
