@@ -670,6 +670,8 @@ function handleEnd(e) {
         showFeedback('Not a word', 'invalid');
         break;
       case 'solved':
+        foundWords.clear();
+        board = generateValidBoard();
         updateScore();
         draw();
         if (result.gotBonus) {
