@@ -247,6 +247,11 @@ let timerInterval = null;
 let boardsSolved = 0;
 const BONUS_THRESHOLD = 3;
 const BONUS_TIME = 20;
+const MAX_GAME_TIME = 300; // 5 minutes absolute max
+
+let elapsedTime = 0; // total seconds played
+let warningShown60 = false;
+let warningShown20 = false;
 
 let boardResults = { playerWords: [], boardStates: [], finalBoard: null };
 let currentBoardBest = { word: '', score: 0 };
@@ -415,10 +420,7 @@ function processWordSubmission(path) {
     totalScore = 0;
     // Every board completion gives +20 seconds
     timeRemaining += BONUS_TIME;
-    // Check milestones
-    const isChampion = boardsSolved >= 11;
-    const isWinner = boardsSolved >= 3;
-    return { result: 'solved', word, wordScore, boardsSolved, gotBonus: true, isWinner, isChampion };
+    return { result: 'solved', word, wordScore, boardsSolved, gotBonus: true };
   } else if (newTotal === TRAP_SCORE) {
     // Bust: don't add to foundWords, don't reset board or score
     return { result: 'trap', word, wordScore, newTotal, boardsSolved, preBustScore: totalScore };
@@ -674,33 +676,9 @@ function handleEnd(e) {
         board = generateValidBoard();
         updateScore();
         draw();
-        if (result.isChampion) {
-          // 11 boards — CHAMPION, game ends
-          playBonusSound();
-          updateTimerDisplay();
-          showFeedback("YOU'VE WON — 11 BOARDS COMPLETED!", 'champion');
-          // Push board and button down to maintain spacing from larger text
-          canvas.style.marginTop = '10px';
-          stopTimer();
-          gameState = 'timeout';
-          saveFinalBoardLayout();
-          startBtn.textContent = 'New Game';
-          setTimeout(() => {
-            saveFinalGameResults();
-            try {
-              boardResults.bestWords = computeAllBestWords();
-              saveFinalGameResults();
-            } catch(e) { console.error('Solver error:', e); }
-            if (resultsBtn) {
-              resultsBtn.classList.add('visible');
-              resultsBtn.style.display = 'block';
-            }
-          }, 50);
-        } else {
-          playBonusSound();
-          updateTimerDisplay();
-          showFeedback(`${word} = 111! Board #${result.boardsSolved} — +20 sec!`, 'bonus');
-        }
+        playBonusSound();
+        updateTimerDisplay();
+        showFeedback(`${word} = 111! Board #${result.boardsSolved} — +20 sec!`, 'bonus');
         break;
       case 'trap':
         playTrapSound();
@@ -753,7 +731,7 @@ function showFeedback(message, type) {
   }
   wordText.textContent = message;
   wordPill.className = `word-pill visible ${type}`;
-  if (type !== 'win' && type !== 'champion') {
+  if (type !== 'win') {
     feedbackTimeout = setTimeout(() => {
       wordPill.className = 'word-pill';
       feedbackTimeout = null;
@@ -794,9 +772,35 @@ function updateTimerDisplay() {
 function startTimer() {
   stopTimer();
   timeRemaining = GAME_DURATION;
+  elapsedTime = 0;
+  warningShown60 = false;
+  warningShown20 = false;
   updateTimerDisplay();
   timerInterval = setInterval(() => {
     timeRemaining--;
+    elapsedTime++;
+    // Check absolute 5-minute max
+    const totalTimeLeft = MAX_GAME_TIME - elapsedTime;
+    if (totalTimeLeft <= 0) {
+      timeRemaining = 0;
+      updateTimerDisplay();
+      stopTimer();
+      endGameTimeout();
+      return;
+    }
+    // Cap timeRemaining so it can't exceed absolute time left
+    if (timeRemaining > totalTimeLeft) {
+      timeRemaining = totalTimeLeft;
+    }
+    // Flash warnings based on absolute time remaining
+    if (totalTimeLeft === 60 && !warningShown60) {
+      warningShown60 = true;
+      showFeedback('60 seconds left!', 'timeout');
+    }
+    if (totalTimeLeft === 20 && !warningShown20) {
+      warningShown20 = true;
+      showFeedback('20 seconds left!', 'trap');
+    }
     updateTimerDisplay();
     if (timeRemaining <= 10 && timeRemaining > 0) {
       playTickSound();
@@ -854,7 +858,6 @@ function startGame() {
   sessionStorage.removeItem('boardResults');
   board = generateValidBoard();
   updateScore();
-  canvas.style.marginTop = '';
   startBtn.textContent = 'Reset';
   if (resultsBtn) {
     resultsBtn.classList.remove('visible');
@@ -876,7 +879,6 @@ function resetGame() {
   board = generateValidBoard();
   gameState = 'playing';
   updateScore();
-  canvas.style.marginTop = '';
   if (resultsBtn) {
     resultsBtn.classList.remove('visible');
     resultsBtn.style.display = 'none';
