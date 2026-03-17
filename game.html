@@ -86,10 +86,10 @@
       </button>
     </div>
   </div>
-  <script src="game.js"></script>
+  <script src="game.js?v=14"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/111-game/sw.js')
+      navigator.serviceWorker.register('/111-game/sw.js?v=14')
         .then(reg => console.log('SW registered'))
         .catch(err => console.log('SW failed:', err));
     }

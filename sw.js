@@ -1,10 +1,12 @@
 /* sw.js — PWA-installable version */
-const VERSION = 'v13';
+const VERSION = 'v14';
 const CACHE_NAME = `111-game-${VERSION}`;
 const CORE_FILES = [
   '/111-game/',
   '/111-game/index.html',
   '/111-game/game.html',
+  '/111-game/game.js',
+  '/111-game/styles.css',
   '/111-game/manifest.json',
   '/111-game/icon-192b.png',
   '/111-game/icon-512.png',
