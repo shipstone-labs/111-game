@@ -3,13 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#1a1a2e">
-  <title>111</title>
-  <link rel="manifest" href="manifest.json">
+  <title>111 Classic</title>
   <link rel="stylesheet" href="styles.css">
-  <link rel="apple-touch-icon" href="icon-512.png">
   <style>
     .start-btn {
       margin-top: 16px;
@@ -86,12 +82,13 @@
       </button>
     </div>
   </div>
-  <script src="classic-game.js"></script>
+  <script src="classic-game.js?v=classic"></script>
   <script>
+    // Unregister any service worker for classic mode to prevent caching issues
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/111-game/sw.js')
-        .then(reg => console.log('SW registered'))
-        .catch(err => console.log('SW failed:', err));
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        // Don't unregister — just ensure classic doesn't install one
+      });
     }
   </script>
 </body>
