@@ -760,7 +760,12 @@ function formatTime(seconds) {
 
 function updateTimerDisplay() {
   timerDisplay.textContent = formatTime(timeRemaining);
-  if (timeRemaining <= 10) {
+  // If absolute time warnings have been triggered, keep those styles
+  if (warningShown20) {
+    timerDisplay.className = 'timer critical';
+  } else if (warningShown60) {
+    timerDisplay.className = 'timer warning';
+  } else if (timeRemaining <= 10) {
     timerDisplay.className = 'timer critical';
   } else if (timeRemaining <= 20) {
     timerDisplay.className = 'timer warning';
@@ -793,13 +798,13 @@ function startTimer() {
       timeRemaining = totalTimeLeft;
     }
     // Flash warnings based on absolute time remaining
-    if (totalTimeLeft === 60 && !warningShown60) {
+    if (totalTimeLeft <= 60 && !warningShown60) {
       warningShown60 = true;
-      showFeedback('60 seconds left!', 'timeout');
+      timerDisplay.className = 'timer warning';
     }
-    if (totalTimeLeft === 20 && !warningShown20) {
+    if (totalTimeLeft <= 20 && !warningShown20) {
       warningShown20 = true;
-      showFeedback('20 seconds left!', 'trap');
+      timerDisplay.className = 'timer critical';
     }
     updateTimerDisplay();
     if (timeRemaining <= 10 && timeRemaining > 0) {
@@ -848,7 +853,7 @@ function endGameTimeout() {
 }
 
 function startGame() {
-  console.log('111 game v14 — 5-min cap active, MAX_GAME_TIME=' + MAX_GAME_TIME);
+  console.log('111 game v15 — 5-min cap active, MAX_GAME_TIME=' + MAX_GAME_TIME);
   if (!audioContext) initAudio();
   gameState = 'playing';
   totalScore = 0;
