@@ -848,6 +848,7 @@ function endGameTimeout() {
 }
 
 function startGame() {
+  console.log('111 game v12 — 5-min cap active, MAX_GAME_TIME=' + MAX_GAME_TIME);
   if (!audioContext) initAudio();
   gameState = 'playing';
   totalScore = 0;
