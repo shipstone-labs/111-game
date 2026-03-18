@@ -790,7 +790,7 @@ function startTimer() {
       timeRemaining = 0;
       updateTimerDisplay();
       stopTimer();
-      endGameTimeout();
+      endGameMaxTime();
       return;
     }
     // Cap timeRemaining so it can't exceed absolute time left
@@ -827,7 +827,7 @@ function stopTimer() {
 function endGameTimeout() {
   gameState = 'timeout';
   saveFinalBoardLayout();
-  saveCurrentBoardResult(); // Ensure final active board is analyzed
+  saveCurrentBoardResult();
   selectedPath = [];
   isDragging = false;
   currentPos = null;
@@ -835,16 +835,38 @@ function endGameTimeout() {
   startBtn.textContent = 'New Game';
   draw();
   setTimeout(() => {
-    // Always save player words immediately so results page always has data
     saveFinalGameResults();
-    // Then attempt to compute best possible words
     try {
       boardResults.bestWords = computeAllBestWords();
-      saveFinalGameResults(); // Save again with bestWords included
+      saveFinalGameResults();
     } catch(e) {
       console.error('Solver error:', e);
     }
-    // Always show results button regardless of whether solver succeeded
+    if (resultsBtn) {
+      resultsBtn.classList.add('visible');
+      resultsBtn.style.display = 'block';
+    }
+  }, 50);
+}
+
+function endGameMaxTime() {
+  gameState = 'timeout';
+  saveFinalBoardLayout();
+  saveCurrentBoardResult();
+  selectedPath = [];
+  isDragging = false;
+  currentPos = null;
+  showFeedback(`5-minute limit reached. Game over. Boards: ${boardsSolved}`, 'timeout');
+  startBtn.textContent = 'New Game';
+  draw();
+  setTimeout(() => {
+    saveFinalGameResults();
+    try {
+      boardResults.bestWords = computeAllBestWords();
+      saveFinalGameResults();
+    } catch(e) {
+      console.error('Solver error:', e);
+    }
     if (resultsBtn) {
       resultsBtn.classList.add('visible');
       resultsBtn.style.display = 'block';
@@ -853,7 +875,7 @@ function endGameTimeout() {
 }
 
 function startGame() {
-  console.log('111 game v15 — 5-min cap active, MAX_GAME_TIME=' + MAX_GAME_TIME);
+  console.log('111 game v16 — 5-min cap active, MAX_GAME_TIME=' + MAX_GAME_TIME);
   if (!audioContext) initAudio();
   gameState = 'playing';
   totalScore = 0;
