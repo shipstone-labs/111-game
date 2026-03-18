@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a2e">
+  <title>111 Classic</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .start-btn {
+      margin-top: 16px;
+      padding: 18px 48px;
+      font-size: 22px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: #008E97;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      width: 100%;
+      max-width: 300px;
+      box-shadow: 0 6px 20px rgba(0, 142, 151, 0.45);
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+      touch-action: manipulation;
+    }
+    .start-btn:hover { background: #00a8b3; box-shadow: 0 8px 24px rgba(0,142,151,0.6); }
+    .start-btn:active { transform: scale(0.95); box-shadow: 0 3px 10px rgba(0,142,151,0.3); }
+    #resultsBtn {
+      margin-top: 16px;
+      padding: 16px 32px;
+      font-size: 18px;
+      font-weight: bold;
+      background: #008E97;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      width: 100%;
+      max-width: 300px;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,142,151,0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    #resultsBtn.visible { display: block; }
+    #resultsBtn:hover { background: #00a8b3; }
+    #resultsBtn:active { transform: scale(0.95); }
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <div class="header">
+      <div class="boards">
+        <span class="boards-icon">✓</span>
+        <span class="boards-value" id="boardsValue">0</span>
+      </div>
+      <div class="score">
+        <span class="score-value" id="scoreValue">0</span>
+        <span class="score-sep">/</span>
+        <span class="score-target">111</span>
+      </div>
+      <div class="timer" id="timer">60</div>
+    </div>
+    <div class="word-area">
+      <div class="word-pill" id="wordPill">
+        <span class="word-text" id="wordText"></span>
+      </div>
+    </div>
+    <canvas id="board"></canvas>
+    <div class="button-container">
+      <button class="start-btn" id="startBtn">Play</button>
+      <button id="resultsBtn" onclick="window.location.href='results.html'">
+        See Best Results From This Game
+      </button>
+    </div>
+  </div>
+  <script src="game.js"></script>
+  <script>
+    // Unregister any service worker so the main game's SW can't interfere
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(reg => reg.unregister());
+      });
+    }
+  </script>
+</body>
+</html>
