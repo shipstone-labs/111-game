@@ -404,6 +404,30 @@ function isValidPath(path) {
   return true;
 }
 
+function canReachTarget() {
+  // Check if any valid unused word on the board can be played without busting
+  // (i.e., totalScore + wordScore <= TARGET_SCORE and wordScore != TRAP_SCORE - totalScore)
+  const needed = TARGET_SCORE - totalScore;
+  if (needed <= 0) return false;
+  
+  for (let startIdx = 0; startIdx < board.length; startIdx++) {
+    const allPaths = [];
+    findAllPaths(startIdx, [startIdx], new Set([startIdx]), allPaths);
+    for (const path of allPaths) {
+      const word = path.map(i => board[i].letter).join('');
+      if (foundWords.has(word)) continue;
+      if (!isValidWord(word)) continue;
+      const score = calculateWordScore(path, board);
+      const newTotal = totalScore + score;
+      // Any word that doesn't bust and doesn't hit the 110 trap means the board is still playable
+      if (newTotal <= TARGET_SCORE && newTotal !== TRAP_SCORE) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 function processWordSubmission(path) {
   if (!isValidPath(path)) return { result: 'invalid-path', path };
   const word = path.map(i => board[i].letter).join('');
@@ -683,24 +707,42 @@ function handleEnd(e) {
       case 'trap':
         playTrapSound();
         showFeedback(`${word} = 110 BUST!`, 'trap');
-        // After 1 second, revert to pre-bust state (same board, same score, same timer)
+        // After 1 second, check if board is still playable
         setTimeout(() => {
-          // Score was never changed — word was not added to foundWords by processWordSubmission
-          // but we need to ensure the word that caused the bust is NOT available to replay
-          // (it wasn't added to foundWords, which is correct — it busted, player can try other words)
+          if (!canReachTarget()) {
+            // Dead board — give new board, keep score and timer
+            foundWords.clear();
+            board = generateValidBoard();
+            showFeedback('New board — no path to 111', 'timeout');
+          }
           draw();
         }, 1000);
         break;
       case 'overshoot':
         showFeedback(`${word} = ${result.newTotal} BUST!`, 'overshoot');
-        // After 1 second, revert to pre-bust state (same board, same score, same timer)
+        // After 1 second, check if board is still playable
         setTimeout(() => {
+          if (!canReachTarget()) {
+            // Dead board — give new board, keep score and timer
+            foundWords.clear();
+            board = generateValidBoard();
+            showFeedback('New board — no path to 111', 'timeout');
+          }
           draw();
         }, 1000);
         break;
       case 'valid':
         updateScore();
         showFeedback(`${word} +${result.wordScore}`, 'valid');
+        // Check if board is still playable after this word
+        setTimeout(() => {
+          if (!canReachTarget()) {
+            foundWords.clear();
+            board = generateValidBoard();
+            showFeedback('New board — no path to 111', 'timeout');
+            draw();
+          }
+        }, 500);
         break;
     }
   } else {
@@ -875,7 +917,7 @@ function endGameMaxTime() {
 }
 
 function startGame() {
-  console.log('111 game v16 — 5-min cap active, MAX_GAME_TIME=' + MAX_GAME_TIME);
+  console.log('111 game v17 — dead board detection, 5-min cap');
   if (!audioContext) initAudio();
   gameState = 'playing';
   totalScore = 0;
