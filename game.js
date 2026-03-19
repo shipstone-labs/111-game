@@ -247,7 +247,7 @@ let timerInterval = null;
 let boardsSolved = 0;
 const BONUS_THRESHOLD = 3;
 const BONUS_TIME = 20;
-const MAX_GAME_TIME = 300; // 5 minutes absolute max
+const MAX_GAME_TIME = 240; // 4 minutes absolute max
 
 let elapsedTime = 0; // total seconds played
 let warningShown60 = false;
@@ -898,7 +898,7 @@ function endGameMaxTime() {
   selectedPath = [];
   isDragging = false;
   currentPos = null;
-  showFeedback(`5-minute limit reached. Game over. Boards: ${boardsSolved}`, 'timeout');
+  showFeedback(`4-minute limit reached. Game over. Boards: ${boardsSolved}`, 'timeout');
   startBtn.textContent = 'New Game';
   draw();
   setTimeout(() => {
@@ -917,7 +917,7 @@ function endGameMaxTime() {
 }
 
 function startGame() {
-  console.log('111 game v17 — dead board detection, 5-min cap');
+  console.log('111 game v19 — 4-min cap, dead board detection');
   if (!audioContext) initAudio();
   gameState = 'playing';
   totalScore = 0;
