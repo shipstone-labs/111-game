@@ -6,6 +6,17 @@
   <meta name="theme-color" content="#1a1a2e">
   <title>111 Classic</title>
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // Classic mode: unregister any service worker that might serve cached main game files.
+    // The main game's SW can cache game.js/game.html and serve them instead of classic files
+    // when the browser restores this page from memory or on subsequent visits.
+    // This only affects the /111-game/ scope — re-visiting the main game will re-register it.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(reg => reg.unregister());
+      });
+    }
+  </script>
   <style>
     .start-btn {
       margin-top: 16px;
@@ -53,10 +64,24 @@
       align-items: center;
       gap: 16px;
     }
+    .classic-badge {
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #FF6900;
+      opacity: 0.85;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
-  <div class="game-container">
+  <div class="game-container" style="position:relative;">
+    <div class="classic-badge">Classic</div>
     <div class="header">
       <div class="boards">
         <span class="boards-icon">✓</span>
@@ -82,14 +107,6 @@
       </button>
     </div>
   </div>
-  <script src="classic-game.js?v=classic"></script>
-  <script>
-    // Unregister any service worker for classic mode to prevent caching issues
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(registrations => {
-        // Don't unregister — just ensure classic doesn't install one
-      });
-    }
-  </script>
+  <script src="classic-game.js?v=classic2"></script>
 </body>
 </html>
