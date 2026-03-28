@@ -246,7 +246,7 @@ let timerInterval = null;
 
 let boardsSolved = 0;
 const BONUS_THRESHOLD = 3;
-const BONUS_TIME = 15;
+const BONUS_TIME = 10;
 
 let elapsedTime = 0; // total seconds played
 let warningShown60 = false;
@@ -701,7 +701,7 @@ function handleEnd(e) {
         draw();
         playBonusSound();
         updateTimerDisplay();
-        showFeedback(`${word} = 111! Board #${result.boardsSolved} — +15 sec!`, 'bonus');
+        showFeedback(`${word} = 111! Board #${result.boardsSolved} — +10 sec!`, 'bonus');
         break;
       case 'trap':
         playTrapSound();
@@ -903,7 +903,7 @@ function endGameMaxTime() {
 }
 
 function startGame() {
-  console.log('111 game v20 — 15s bonus, no time cap, dead board detection');
+  console.log('111 game v21 — 10s bonus, no time cap, dead board detection');
   if (!audioContext) initAudio();
   gameState = 'playing';
   totalScore = 0;
