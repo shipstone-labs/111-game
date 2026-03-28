@@ -246,8 +246,7 @@ let timerInterval = null;
 
 let boardsSolved = 0;
 const BONUS_THRESHOLD = 3;
-const BONUS_TIME = 20;
-const MAX_GAME_TIME = 240; // 4 minutes absolute max
+const BONUS_TIME = 15;
 
 let elapsedTime = 0; // total seconds played
 let warningShown60 = false;
@@ -702,7 +701,7 @@ function handleEnd(e) {
         draw();
         playBonusSound();
         updateTimerDisplay();
-        showFeedback(`${word} = 111! Board #${result.boardsSolved} — +20 sec!`, 'bonus');
+        showFeedback(`${word} = 111! Board #${result.boardsSolved} — +15 sec!`, 'bonus');
         break;
       case 'trap':
         playTrapSound();
@@ -826,25 +825,12 @@ function startTimer() {
   timerInterval = setInterval(() => {
     timeRemaining--;
     elapsedTime++;
-    // Check absolute 5-minute max
-    const totalTimeLeft = MAX_GAME_TIME - elapsedTime;
-    if (totalTimeLeft <= 0) {
-      timeRemaining = 0;
-      updateTimerDisplay();
-      stopTimer();
-      endGameMaxTime();
-      return;
-    }
-    // Cap timeRemaining so it can't exceed absolute time left
-    if (timeRemaining > totalTimeLeft) {
-      timeRemaining = totalTimeLeft;
-    }
-    // Flash warnings based on absolute time remaining
-    if (totalTimeLeft <= 60 && !warningShown60) {
+    // Flash warnings based on time remaining on current board
+    if (timeRemaining <= 60 && !warningShown60) {
       warningShown60 = true;
       timerDisplay.className = 'timer warning';
     }
-    if (totalTimeLeft <= 20 && !warningShown20) {
+    if (timeRemaining <= 20 && !warningShown20) {
       warningShown20 = true;
       timerDisplay.className = 'timer critical';
     }
@@ -917,7 +903,7 @@ function endGameMaxTime() {
 }
 
 function startGame() {
-  console.log('111 game v19 — 4-min cap, dead board detection');
+  console.log('111 game v20 — 15s bonus, no time cap, dead board detection');
   if (!audioContext) initAudio();
   gameState = 'playing';
   totalScore = 0;
