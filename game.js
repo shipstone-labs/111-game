@@ -246,7 +246,7 @@ let timerInterval = null;
 
 let boardsSolved = 0;
 let bustCount = 0;
-const MAX_BUSTS = 5;
+const MAX_BONUS_BOARDS = 5;
 const BONUS_THRESHOLD = 3;
 const BONUS_TIME = 15;
 
@@ -443,9 +443,12 @@ function processWordSubmission(path) {
     boardsSolved++;
     resetBoardTracking();
     totalScore = 0;
-    // Every board completion gives +20 seconds
-    timeRemaining += BONUS_TIME;
-    return { result: 'solved', word, wordScore, boardsSolved, gotBonus: true };
+    // Bonus time only for first MAX_BONUS_BOARDS boards
+    const gotBonus = boardsSolved <= MAX_BONUS_BOARDS;
+    if (gotBonus) {
+      timeRemaining += BONUS_TIME;
+    }
+    return { result: 'solved', word, wordScore, boardsSolved, gotBonus };
   } else if (newTotal === TRAP_SCORE) {
     // Bust: don't add to foundWords, don't reset board or score
     return { result: 'trap', word, wordScore, newTotal, boardsSolved, preBustScore: totalScore };
@@ -703,16 +706,16 @@ function handleEnd(e) {
         draw();
         playBonusSound();
         updateTimerDisplay();
-        showFeedback(`${word} = 111! Board #${result.boardsSolved} — +15 sec!`, 'bonus');
+        if (result.gotBonus) {
+          showFeedback(`${word} = 111! Board #${result.boardsSolved} — +15 sec!`, 'bonus');
+        } else {
+          showFeedback(`${word} = 111! Board #${result.boardsSolved} — no bonus!`, 'bonus');
+        }
         break;
       case 'trap':
         playTrapSound();
         bustCount++;
-        showFeedback(`${word} = 110 BUST! (${bustCount}/${MAX_BUSTS})`, 'trap');
-        if (bustCount >= MAX_BUSTS) {
-          setTimeout(() => endGameBusts(), 1000);
-          break;
-        }
+        showFeedback(`${word} = 110 BUST!`, 'trap');
         // After 1 second, check if board is still playable
         setTimeout(() => {
           if (!canReachTarget()) {
@@ -726,11 +729,7 @@ function handleEnd(e) {
         break;
       case 'overshoot':
         bustCount++;
-        showFeedback(`${word} = ${result.newTotal} BUST! (${bustCount}/${MAX_BUSTS})`, 'overshoot');
-        if (bustCount >= MAX_BUSTS) {
-          setTimeout(() => endGameBusts(), 1000);
-          break;
-        }
+        showFeedback(`${word} = ${result.newTotal} BUST!`, 'overshoot');
         // After 1 second, check if board is still playable
         setTimeout(() => {
           if (!canReachTarget()) {
@@ -864,32 +863,6 @@ function stopTimer() {
   }
 }
 
-function endGameBusts() {
-  gameState = 'timeout';
-  stopTimer();
-  saveFinalBoardLayout();
-  saveCurrentBoardResult();
-  selectedPath = [];
-  isDragging = false;
-  currentPos = null;
-  showFeedback(`5 busts — game over! Boards: ${boardsSolved}`, 'timeout');
-  startBtn.textContent = 'New Game';
-  draw();
-  setTimeout(() => {
-    saveFinalGameResults();
-    try {
-      boardResults.bestWords = computeAllBestWords();
-      saveFinalGameResults();
-    } catch(e) {
-      console.error('Solver error:', e);
-    }
-    if (resultsBtn) {
-      resultsBtn.classList.add('visible');
-      resultsBtn.style.display = 'block';
-    }
-  }, 50);
-}
-
 function endGameTimeout() {
   gameState = 'timeout';
   saveFinalBoardLayout();
@@ -941,7 +914,7 @@ function endGameMaxTime() {
 }
 
 function startGame() {
-  console.log('111 game v23 — 15s bonus, no time cap, 5 bust limit');
+  console.log('111 game v24 — 15s bonus for first 5 boards only, no bust limit');
   if (!audioContext) initAudio();
   gameState = 'playing';
   totalScore = 0;
