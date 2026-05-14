@@ -9,5 +9,4 @@ analyze-*.js
 build.sh
 files.zip
 prototype-*.html
-classic-game.js
 .wranglerignore
