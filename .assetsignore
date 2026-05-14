@@ -1,0 +1,13 @@
+.git/
+.amnesiac/
+session/
+outcomes/
+*.md
+test*.js
+debug-*.js
+analyze-*.js
+build.sh
+files.zip
+prototype-*.html
+classic-game.js
+.wranglerignore
