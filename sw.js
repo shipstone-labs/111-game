@@ -1,28 +1,9 @@
 /* sw.js — PWA-installable version */
-const VERSION = 'v24';
+const VERSION = 'v25';
 const CACHE_NAME = `111-game-${VERSION}`;
-const CORE_FILES = [
-  '/111-game/',
-  '/111-game/index.html',
-  '/111-game/game.html',
-  '/111-game/game.js',
-  '/111-game/styles.css',
-  '/111-game/manifest.json',
-  '/111-game/icon-192b.png',
-  '/111-game/icon-512.png',
-  '/111-game/icon-1024.png',
-  '/111-game/apple-touch-icon.png',
-  '/111-game/maskable-192.png',
-  '/111-game/maskable-512.png',
-  '/111-game/maskable-1024.png'
-];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(CORE_FILES);
-    })
-  );
+  // Skip pre-caching; the fetch handler caches assets on first request.
   self.skipWaiting();
 });
 
@@ -38,19 +19,19 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Network-first with cache fallback.
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Cache a fresh copy
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, clone);
-        });
+        // Cache a fresh copy of successful GETs.
+        if (event.request.method === 'GET' && response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, clone);
+          });
+        }
         return response;
       })
-      .catch(() => {
-        // Offline fallback — serve from cache
-        return caches.match(event.request);
-      })
+      .catch(() => caches.match(event.request))
   );
 });
